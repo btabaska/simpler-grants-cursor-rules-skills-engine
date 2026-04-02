@@ -1,0 +1,19 @@
+{
+  "name": "simpler-grants-context-server",
+  "version": "1.0.0",
+  "description": "MCP server that serves simpler-grants-gov architecture guide and coding rules as targeted context",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0"
+  }
+}
