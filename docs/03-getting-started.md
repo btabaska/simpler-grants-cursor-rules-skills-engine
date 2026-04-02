@@ -57,6 +57,28 @@ export GITHUB_PAT=ghp_your_token_here
 
 Then reload with `source ~/.zshrc` (or `source ~/.bashrc`).
 
+### Required Cursor Plugins
+
+After cloning and running the setup script, install these two Cursor plugins:
+
+**Compound Engineering:**
+1. Open Cursor Settings (Cmd+, or Ctrl+,)
+2. Go to Extensions / Plugins
+3. Search for "compound-engineering"
+4. Click Install
+5. Verify: type `@compound` in Cursor chat — specialists should appear in autocomplete
+
+**Compound Knowledge:**
+1. Open Cursor Settings (Cmd+, or Ctrl+,)
+2. Go to Extensions / Plugins
+3. Search for "compound-knowledge"
+4. Click Install
+5. Open the Compound Knowledge panel
+6. Add the `documentation/` directory and `.cursor/rules/` directory to the knowledge index
+7. Wait for indexing to complete
+
+These plugins are required for the full quality gate pipelines to work. Without them, the toolkit still functions (rules activate, conventions are enforced), but specialist validation and knowledge-enriched context will be unavailable.
+
 ---
 
 ## Installation

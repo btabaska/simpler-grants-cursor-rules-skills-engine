@@ -321,6 +321,49 @@ Expected: symlinks to toolkit, 18 `.mdc` files, Node v18+, PAT starts with `ghp_
 
 ---
 
+## Plugin Issues
+
+### Specialists aren't running during agent quality gates
+**Symptom:** Agent output doesn't mention specialist validation; no quality gate messages appear.
+**Likely Cause:** Compound Engineering plugin is not installed.
+**Fix:**
+1. Open Cursor Settings → Extensions / Plugins
+2. Search for "compound-engineering" and install it
+3. Restart Cursor
+4. Verify: type `@compound` in chat — specialists should appear
+**Prevention:** Run the setup script, which reminds you to install required plugins.
+
+### Compound Knowledge lookups return nothing
+**Symptom:** AI doesn't reference architectural context or ADR decisions when generating code.
+**Likely Cause:** Compound Knowledge plugin is not installed, or project documentation hasn't been indexed.
+**Fix:**
+1. Install the compound-knowledge plugin from Cursor Extensions
+2. Open the Compound Knowledge panel
+3. Add `documentation/` and `.cursor/rules/` directories to the index
+4. Wait for indexing to complete
+**Prevention:** Index documentation immediately after setup.
+
+### MCP server tools return errors
+**Symptom:** "Tool not found" or empty results when agents try to load context.
+**Likely Cause:** The custom MCP server hasn't been built, or `.cursor/mcp.json` is misconfigured.
+**Fix:**
+1. Build the MCP server: `cd mcp-server && npm install && npm run build`
+2. Verify `.cursor/mcp.json` contains the `simpler-grants-context` server entry
+3. Restart Cursor to reload MCP configurations
+4. Verify: the MCP server panel in Cursor should show three servers (github, filesystem, simpler-grants-context)
+**Prevention:** The setup script builds the MCP server automatically. If it failed, check for Node.js 18+ and npm availability.
+
+### Specialists give irrelevant feedback
+**Symptom:** Specialist validation comments don't match the project's conventions.
+**Likely Cause:** Compound Knowledge hasn't indexed the project-specific documentation.
+**Fix:**
+1. Re-index the documentation/ directory in Compound Knowledge
+2. Ensure .cursor/rules/ is also indexed
+3. Verify the architecture guide exists at documentation/architecture-guide.md
+**Prevention:** Keep the knowledge index up to date when rules or docs change.
+
+---
+
 ## See Also
 
 - [Getting Started](03-getting-started.md) -- initial setup and verification

@@ -360,6 +360,72 @@ No data leaves your machine except through Cursor's normal AI API calls -- the s
 
 ---
 
+## Plugin Architecture: Compound Engineering and Compound Knowledge
+
+### Compound Engineering — Specialist Sub-Agents
+
+Every agent and domain rule in this toolkit can invoke specialist sub-agents from the Compound Engineering plugin. These specialists are domain experts that validate specific aspects of generated code:
+
+**Core specialists (available on every review):**
+- `codebase-conventions-reviewer` — validates code against all ALWAYS/NEVER/MUST directives
+- `security-sentinel` — security vulnerabilities, auth/authz, input validation
+- `performance-oracle` — query/render performance, complexity risks
+- `code-simplicity-reviewer` — unnecessary complexity, simplification opportunities
+- `architecture-strategist` — pattern compliance, layering, boundary integrity
+
+**Language specialists (conditional):**
+- `kieran-python-reviewer` — Python quality (when Python files are involved)
+- `kieran-typescript-reviewer` — TypeScript quality (when TS/JS files are involved)
+
+**Domain specialists (conditional by change type):**
+- `data-integrity-guardian` — data consistency (DB changes)
+- `data-migration-expert` — migration safety (migrations)
+- `schema-drift-detector` — schema consistency across layers (schema changes)
+- `deployment-verification-agent` — deployment safety (infra/CI changes)
+- `julik-frontend-races-reviewer` — async/race conditions (async UI changes)
+- `pattern-recognition-specialist` — duplication detection
+- `agent-native-reviewer` — agent/tooling quality
+- `git-history-analyzer` — historical context (on-demand)
+
+**How it works in practice:**
+
+When you invoke `agent-new-endpoint`, the agent:
+1. Loads architectural context via MCP server tools (pre-flight)
+2. Generates all endpoint files following project conventions
+3. Runs Gate 1: `codebase-conventions-reviewer` validates convention compliance
+4. Runs Gate 2: `architecture-strategist` validates route/service layering + `security-sentinel` validates auth patterns (in parallel)
+5. Runs Gate 3: `kieran-python-reviewer` validates Python quality
+6. Runs Gate 4 (conditional): `performance-oracle` if the endpoint is query-heavy
+7. Returns the validated, corrected output
+
+When a domain rule like `api-routes.mdc` activates during editing, the specialist invocation is conditional on complexity:
+- Simple changes (< 20 lines): rule directives alone are sufficient
+- Moderate changes: `codebase-conventions-reviewer` validates
+- Complex changes: multiple specialists run in parallel
+
+### Compound Knowledge — Documentation Context
+
+Compound Knowledge indexes your project documentation and makes it available as AI context. The toolkit instructs the AI to consult this indexed knowledge for:
+- Architecture Decision Records (ADRs) and their rationale
+- Historical patterns and conventions
+- Domain-specific documentation from the architecture guide
+- Precedents for similar code changes
+
+This means the AI doesn't just follow rules — it understands the *why* behind them.
+
+### MCP Server Tools — Dynamic Context Loading
+
+The custom `simpler-grants-context` MCP server provides 5 tools that agents and rules call for targeted context:
+- `get_architecture_section(section)` — retrieve a specific section of the architecture guide
+- `get_rules_for_file(file_path)` — discover which rules apply to a given file
+- `get_rule_detail(rule_name)` — load the full text of a specific rule
+- `get_conventions_summary()` — get cross-cutting project conventions
+- `list_rules()` — list all available rules
+
+This avoids dumping the entire 50KB architecture guide into context. Instead, agents load only the sections they need.
+
+---
+
 ## You Are Always In Control
 
 Every layer of this toolkit operates within strict boundaries:

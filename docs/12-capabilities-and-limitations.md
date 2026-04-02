@@ -336,6 +336,21 @@ An accurate capability assessment is more valuable than an optimistic one.
 
 For answers to common skeptic concerns, see [FAQ for Skeptics](14-faq-for-skeptics.md).
 
+## Plugin Dependencies and Graceful Degradation
+
+The toolkit's full capabilities depend on two Cursor plugins and the custom MCP server:
+
+| Component | When Missing | Impact |
+|-----------|-------------|--------|
+| **Compound Engineering** | Specialist quality gates are skipped | Code generation still follows rule directives but lacks multi-specialist validation |
+| **Compound Knowledge** | Knowledge lookups return nothing | AI loses access to indexed architecture docs and ADR context |
+| **MCP server** (simpler-grants-context) | Context enrichment calls fail | Agents can't load architecture sections or discover applicable rules dynamically |
+| **GitHub MCP server** | PR review can't access diffs | PR review skill requires manual diff pasting |
+
+**The toolkit degrades gracefully.** Without plugins, rules still activate, conventions are still enforced via ALWAYS/NEVER/MUST directives, and code examples still guide generation. The plugins add a quality *amplification* layer on top of the base conventions — they don't replace them.
+
+For the full experience, install all plugins per the [Getting Started](03-getting-started.md) guide.
+
 ---
 
 ## See Also

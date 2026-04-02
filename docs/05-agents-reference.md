@@ -6,6 +6,29 @@
 
 Agents are rule files with empty glob patterns -- they don't activate automatically. You invoke them by name when you need a structured, multi-step workflow. They're like having a senior engineer's playbook for specific tasks. Unlike auto-activating rules that fire whenever you touch a matching file, agents sit idle until you explicitly call on them. This gives you full control over when their conventions and scaffolding logic kick in.
 
+### Quality Gate Pipelines (Phase 7 Enhancement)
+
+Every agent now includes two major enhancements:
+
+**Pre-Flight Context Loading:** Before generating code, agents call MCP server tools to load architectural context:
+- `get_architecture_section()` — loads relevant architecture guide sections
+- `get_rules_for_file()` — discovers applicable conventions
+- `get_conventions_summary()` — loads cross-cutting standards
+- Compound Knowledge — consults indexed project documentation
+
+**Quality Gate Pipeline:** After generating code, agents run a multi-gate specialist validation using Compound Engineering:
+
+| Gate | What | Specialist |
+|------|------|-----------|
+| Gate 1 | Convention compliance | `codebase-conventions-reviewer` |
+| Gate 2 | Domain-specific validation | Varies by agent (see below) |
+| Gate 3 | Language quality | `kieran-python-reviewer` or `kieran-typescript-reviewer` |
+| Gate 4+ | Conditional checks | Context-dependent specialists |
+
+If any gate finds issues, the agent fixes them before presenting output. This means agent-generated code has been validated by multiple expert reviewers before you see it.
+
+These features require the Compound Engineering and Compound Knowledge plugins — see [Getting Started](03-getting-started.md) for installation.
+
 ## How to Invoke an Agent
 
 There are two methods:

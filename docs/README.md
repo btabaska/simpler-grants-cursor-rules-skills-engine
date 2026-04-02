@@ -6,6 +6,19 @@ The toolkit gives Cursor IDE project-specific knowledge extracted from 1,459 mer
 
 ---
 
+## Prerequisites
+
+Before using this toolkit, ensure you have:
+- **Cursor IDE** installed
+- **Compound Engineering** plugin installed (provides specialist sub-agents for quality validation)
+- **Compound Knowledge** plugin installed (provides documentation indexing for context enrichment)
+- **Node.js 18+** (for MCP servers)
+- **GITHUB_PAT** environment variable set (for GitHub MCP server)
+
+See [Getting Started](03-getting-started.md) for full installation instructions.
+
+---
+
 ## Start Here
 
 Choose your path based on where you are:

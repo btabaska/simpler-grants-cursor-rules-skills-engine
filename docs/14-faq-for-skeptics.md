@@ -383,6 +383,22 @@ fixing regardless of your opinion on AI coding tools.
 
 ---
 
+### "What are all these plugins the toolkit requires?"
+
+The toolkit uses two Cursor community plugins to amplify its capabilities beyond what rule files alone can do.
+
+**Compound Engineering** provides 15 specialist sub-agents — think of them as domain experts that the AI can consult. When you invoke `agent-new-endpoint`, it doesn't just generate code and hope for the best. It generates code, then asks `security-sentinel` to review the auth patterns, `architecture-strategist` to verify the route/service layering, and `kieran-python-reviewer` to check Python quality. Each specialist catches a different class of issues.
+
+**Compound Knowledge** indexes your project documentation so the AI can reference it during generation. Instead of working from rules alone, the AI can look up the relevant Architecture Decision Record, understand why a pattern was chosen, and generate code that aligns with the intent — not just the letter — of the convention.
+
+Neither plugin is strictly required. Without them, the toolkit still works: rules activate, ALWAYS/NEVER/MUST directives guide generation, code examples show correct patterns. But the specialist validation layer and knowledge enrichment add a significant quality boost, especially for complex tasks like creating new endpoints or reviewing PRs.
+
+### "Do I need to pay for the plugins?"
+
+Both Compound Engineering and Compound Knowledge are community plugins available through the Cursor plugin marketplace. Check the current pricing and terms in the Cursor plugin marketplace — the toolkit works with whatever tier is available, including free tiers. The rules, agents, MCP servers, notepads, and snippets that make up the core of this toolkit are entirely free and open-source.
+
+---
+
 ## See Also
 
 - [What Is This Toolkit?](01-what-is-this-toolkit.md) -- overview and all components

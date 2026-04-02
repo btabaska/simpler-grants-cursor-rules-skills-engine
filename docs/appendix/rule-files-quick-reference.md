@@ -112,6 +112,39 @@ All directives apply together.
 
 ---
 
+## Specialist Integration Summary
+
+Every rule and agent invokes Compound Engineering specialists for quality validation:
+
+**Agent Quality Gate Pipelines:**
+
+| Agent | Specialists in Pipeline |
+|-------|----------------------|
+| `agent-new-endpoint` | conventions, architecture, security, python, performance (conditional) |
+| `agent-code-generation` | conventions, domain-specific, language, pattern-recognition (conditional) |
+| `agent-test-generation` | conventions, performance, language, data-integrity (conditional) |
+| `agent-migration` | conventions, migration-expert, data-integrity, schema-drift, deployment (conditional) |
+| `agent-i18n` | conventions, pattern-recognition, typescript |
+| `agent-adr` | conventions, architecture, git-history (conditional) |
+
+**Domain Rule Specialist Dispatch:**
+
+| Domain | Primary Specialist | Secondary Specialist |
+|--------|-------------------|---------------------|
+| API Routes | `architecture-strategist` | `security-sentinel` |
+| API Services | `architecture-strategist` | `code-simplicity-reviewer` |
+| API Database | `data-integrity-guardian` | `schema-drift-detector` |
+| API Auth | `security-sentinel` | `architecture-strategist` |
+| Frontend Components | `architecture-strategist` | `code-simplicity-reviewer` |
+| Frontend Hooks | `julik-frontend-races-reviewer` | `code-simplicity-reviewer` |
+| Infrastructure | `deployment-verification-agent` | `security-sentinel` |
+| CI/CD | `deployment-verification-agent` | `performance-oracle` |
+| Forms | `schema-drift-detector` | `data-integrity-guardian` |
+
+Requires the **Compound Engineering** plugin. See [Getting Started](../03-getting-started.md).
+
+---
+
 For full details, see [Auto-Activating Rules Reference](../04-auto-activating-rules.md) and [Agents Reference](../05-agents-reference.md).
 
 [Back to documentation index](../README.md)

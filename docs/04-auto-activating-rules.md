@@ -49,6 +49,16 @@ For example, editing a file at `api/src/api/forms/form_routes.py` would activate
 
 The AI receives directives from all four rules and follows them all.
 
+### Specialist Integration (Phase 7 Enhancement)
+
+Every domain rule now includes conditional specialist invocation from the Compound Engineering plugin. The invocation follows a three-tier model based on change complexity:
+
+- **Simple changes** (< 20 lines, single function): Rule directives alone are sufficient — no specialist invocation
+- **Moderate changes** (new function, refactoring): `codebase-conventions-reviewer` validates against project conventions
+- **Complex changes** (new module, architectural decisions): Multiple specialists run in parallel (varies by domain)
+
+Each rule's "Specialist Validation" section specifies which specialists apply. This requires the Compound Engineering plugin — see [Getting Started](03-getting-started.md) for installation.
+
 ---
 
 ## Rule-by-Rule Reference

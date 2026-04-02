@@ -93,6 +93,15 @@ The `pr-review.mdc` rule implements a structured code review workflow with a dis
 
 The dispatch table works by examining which files were changed in the PR. A PR that modifies files in `api/src/api/` triggers the API route review checklist. A PR that adds an Alembic migration triggers the database migration review checklist. A PR that touches both gets both reviews. This means the review feedback is proportional to the scope of the change and specific to the domains involved, rather than running a generic checklist against every PR regardless of content.
 
+### Required Cursor Plugins
+
+The toolkit's quality gate pipelines depend on two Cursor community plugins:
+
+- **Compound Engineering** — provides 15 specialist sub-agents (security-sentinel, architecture-strategist, codebase-conventions-reviewer, and 12 more). Every agent runs a multi-gate quality pipeline using these specialists. Every domain rule invokes specialists conditionally for complex changes.
+- **Compound Knowledge** — provides documentation knowledge indexing. Rules and agents reference indexed project documentation for architectural context enrichment.
+
+Without these plugins, the toolkit still works — rules activate, conventions are enforced, code examples are shown. But the specialist quality validation and knowledge-enriched context that make the toolkit exceptional will be missing.
+
 ---
 
 ## The Tech Stack
