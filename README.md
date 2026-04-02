@@ -4,7 +4,7 @@ An AI-powered coding toolkit for [HHS/simpler-grants-gov](https://github.com/HHS
 
 Built from analysis of **1,459 merged pull requests** spanning 12 months of development history, 50 Architecture Decision Records, and cross-domain pattern synthesis across 14 codebase domains.
 
-**New to this toolkit?** Read the **[User Guide](GUIDE.md)** — it covers everything from setup to prompt engineering, with real-world workflow examples, agent tutorials, and an FAQ for skeptics.
+**New to this toolkit?** Start with the **[Documentation Library](docs/README.md)** — 15 in-depth guides covering setup, prompt engineering, workflow examples, agent tutorials, troubleshooting, and an FAQ for skeptics. Or jump straight to the **[Prompt Cookbook](docs/appendix/prompt-cookbook.md)** for 40+ copy-paste ready prompts.
 
 ## What's Included
 

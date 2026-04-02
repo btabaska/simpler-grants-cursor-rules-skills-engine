@@ -1,0 +1,303 @@
+# Getting Started
+
+A step-by-step tutorial for first-time setup of the AI coding toolkit for the
+HHS/simpler-grants-gov project.
+
+---
+
+## Prerequisites
+
+### 1. Cursor IDE
+
+Download and install Cursor from [https://cursor.sh](https://cursor.sh). Cursor
+is a fork of VS Code with built-in AI features -- your extensions, themes, and
+keybindings carry over.
+
+### 2. A Local Clone of HHS/simpler-grants-gov
+
+You need the monorepo cloned locally:
+
+```bash
+cd ~/GitHub  # or wherever you keep repos
+git clone https://github.com/HHS/simpler-grants-gov.git
+```
+
+### 3. Node.js 18+
+
+Required for MCP servers. Verify with `node --version` (should print v18+).
+Install from [https://nodejs.org](https://nodejs.org) or use `nvm` if needed.
+
+### 4. A GitHub Personal Access Token (PAT)
+
+The toolkit uses a PAT to access repository data (issues, pull requests, file
+contents) through the MCP server. You need a **fine-grained** token scoped to the
+HHS/simpler-grants-gov repository.
+
+**How to create the PAT:**
+
+1. Go to [GitHub Settings](https://github.com/settings/profile)
+2. In the left sidebar, click **Developer Settings**
+3. Click **Personal Access Tokens** then **Fine-grained tokens**
+4. Click **Generate new token**
+5. Give it a descriptive name (e.g., `simpler-grants-toolkit`)
+6. Under **Repository access**, select **Only select repositories** and choose
+   `HHS/simpler-grants-gov`
+7. Under **Permissions**, grant **Read** access to:
+   - **Contents** -- needed to fetch file contents
+   - **Pull requests** -- needed to read PR data and diffs
+   - **Issues** -- needed to read issue context
+8. Click **Generate token** and copy the value immediately
+
+Set the token as an environment variable by adding this to your shell profile
+(`~/.zshrc` for macOS or `~/.bashrc` for Linux):
+
+```bash
+export GITHUB_PAT=ghp_your_token_here
+```
+
+Then reload with `source ~/.zshrc` (or `source ~/.bashrc`).
+
+---
+
+## Installation
+
+### Step 1: Clone the Toolkit Repo
+
+Clone this toolkit repo as a **sibling** to your simpler-grants-gov directory:
+
+```bash
+cd ~/GitHub  # or wherever your repos live
+git clone https://github.com/btabaska/simpler-grants-documentation-automation.git
+```
+
+Your directory structure should look like this:
+
+```
+~/GitHub/
+  simpler-grants-gov/          # the monorepo
+  simpler-grants-documentation-automation/  # this toolkit
+```
+
+### Step 2: Run the Setup Script
+
+```bash
+cd simpler-grants-documentation-automation
+./setup.sh
+```
+
+**What setup.sh does:**
+
+- **Detects the sibling monorepo** -- looks for `simpler-grants-gov/` next to
+  the toolkit directory. If it is not found, it prompts you to enter the path.
+- **Creates symlinks** into the monorepo:
+  - `.cursor/` symlinks to the toolkit's `.cursor/` directory (rules, snippets,
+    agents, MCP config)
+  - `.cursorrules` symlinks to the toolkit's `.cursorrules` file
+  - `documentation/` symlinks to the toolkit's `documentation/` directory
+- **Checks for Node.js** and warns if it is missing or below version 18
+- **Checks for GITHUB_PAT** and warns if the environment variable is not set
+- **Optionally installs git hooks** for pre-commit checks
+- **Builds the custom MCP server** if the `mcp-server/` directory is present
+  (`npm install && npm run build`)
+
+### Step 3: Open the Monorepo in Cursor
+
+```bash
+cursor ~/GitHub/simpler-grants-gov
+```
+
+Cursor will detect the `.cursor/` directory and load the rules, agents, snippets,
+and MCP configuration automatically.
+
+---
+
+## Verification Exercises
+
+Run through each exercise to confirm every component is working.
+
+### Exercise 1: Rules Are Loading
+
+Verifies that Cursor rules activate based on the file you are editing.
+
+1. Open Cursor with the simpler-grants-gov project
+2. Open the file `api/src/api/users/user_routes.py` (or any file under
+   `api/src/api/`)
+3. Open Cursor chat with **Cmd+L** (Mac) or **Ctrl+L** (Windows/Linux)
+4. Type the following prompt:
+
+   ```
+   What conventions should I follow when writing route handlers in this project?
+   ```
+
+5. **What you should see:** The AI responds with specific conventions about:
+   - Decorator stack order (`@blueprint.METHOD` first, then `@blueprint.input`,
+     `@blueprint.output`, `@blueprint.doc`, `@blueprint.auth_required`,
+     `@flask_db.with_db_session`)
+   - Thin handlers that delegate to service functions
+   - Using `raise_flask_error()` instead of `abort()`
+   - Structured logging with `extra={}` dictionaries
+
+6. **What it means if this works:** The `api-routes.mdc` rule activated
+   automatically based on the file path and loaded project-specific conventions
+   into the AI's context.
+
+7. **What it means if you get generic Python advice instead:** The rules are not
+   loading. See the troubleshooting section below.
+
+### Exercise 2: Code Generation
+
+Verifies that generated code follows project conventions.
+
+1. Create a new file: `api/src/api/test_domain_v1/test_routes.py`
+2. In Cursor chat, type:
+
+   ```
+   Generate a GET route handler at /v1/test-domain/<uuid:item_id> that retrieves
+   an item by ID. Use JWT + API key auth.
+   ```
+
+3. **What you should see:** Generated code with:
+   - The exact decorator stack order: `blueprint.get` then `input` then `output`
+     then `doc` then `auth_required` then `with_db_session`
+   - A thin handler that delegates to a service function
+   - `raise_flask_error(404, ...)` for not-found cases
+   - Structured logging with static messages and `extra={}` dictionaries
+
+4. **What to check:**
+   - Decorators are in the correct order (not shuffled)
+   - The handler body is thin -- no business logic, just a call to a service
+   - Uses `raise_flask_error()`, not `abort()`
+   - Logging messages are static strings with dynamic data in `extra={}`
+
+5. **Clean up:** Delete the test file when you are done:
+   ```bash
+   rm -rf api/src/api/test_domain_v1/
+   ```
+
+### Exercise 3: Agent Invocation
+
+Verifies that agent definitions are accessible.
+
+1. In Cursor chat, type:
+
+   ```
+   @agent-test-generation Write a test for a service function that retrieves a
+   user by user_id. The function is get_user(db_session, user_id) and returns a
+   User model or raises a 404.
+   ```
+
+2. **What you should see:** A test file with:
+   - `Factory.build()` or `Factory.create()` (with `enable_factory_create`
+     fixture) for test data
+   - Standalone test functions (not wrapped in classes)
+   - Proper assertion patterns matching the project's test conventions
+
+3. **What this confirms:** Agent definitions in `.cursor/agents/` are loading
+   and the AI is following agent-specific instructions.
+
+### Exercise 4: Snippets
+
+Verifies that code snippets are available.
+
+1. Open any `.py` file under `api/src/`
+2. Type `sgg-route` and wait for the autocomplete dropdown to appear
+3. You should see a snippet option in the list. Select it.
+4. Press **Tab** to cycle through the placeholders: blueprint name, path, schema
+   names, and so on
+5. Fill in or dismiss the placeholders
+
+**If no autocomplete appears:** Check that `.cursor/snippets/` exists in the
+monorepo root. If it does, restart Cursor -- it needs to index new snippet files.
+
+### Exercise 5: MCP Server
+
+Verifies that the Model Context Protocol server is running.
+
+1. In Cursor chat, type:
+
+   ```
+   Use the simpler-grants-context MCP server to get the conventions summary
+   for this project
+   ```
+
+2. **If configured correctly:** The AI invokes the MCP tool and returns the
+   project's key conventions, pulling live data from the repository.
+
+3. **If it does not work:** The MCP server may not be built. Run:
+   ```bash
+   cd ~/GitHub/simpler-grants-documentation-automation/mcp-server
+   npm install
+   npm run build
+   ```
+   Then restart Cursor.
+
+---
+
+## "You're Ready" Checklist
+
+- [ ] `setup.sh` completed without errors
+- [ ] Rules activate when editing API files (Exercise 1)
+- [ ] Generated code follows project conventions (Exercise 2)
+- [ ] Agents respond when invoked with `@agent-*` (Exercise 3)
+- [ ] Snippets appear in autocomplete (Exercise 4)
+- [ ] MCP server connects and returns data (Exercise 5)
+
+All five checked? You are ready to use the toolkit for real work.
+
+---
+
+## Common First-Time Issues
+
+### "setup.sh says it can't find the monorepo"
+
+The script looks for `simpler-grants-gov/` as a sibling directory (i.e., in the
+same parent folder as this toolkit). If your monorepo is elsewhere, enter the
+full absolute path when the script prompts you.
+
+### "Rules seem to load but the AI gives mixed advice"
+
+Restart Cursor completely (quit and reopen, not just reload the window). The first
+time rules are loaded, Cursor sometimes needs a full restart to pick them up
+consistently.
+
+### "Snippets don't appear"
+
+Cursor needs to index the snippet files after they are first created or symlinked.
+Restart Cursor and wait approximately 10 seconds for indexing to complete, then
+try typing the snippet prefix again.
+
+### "MCP server fails to build"
+
+Verify Node.js 18+ with `node --version`. If the version is correct but the
+build still fails, try a clean install:
+
+```bash
+cd ~/GitHub/simpler-grants-documentation-automation/mcp-server
+rm -rf node_modules && npm install && npm run build
+```
+
+### "GITHUB_PAT warning during setup"
+
+The `GITHUB_PAT` environment variable is not set in your current shell session.
+Add `export GITHUB_PAT=ghp_your_token_here` to your shell profile (`~/.zshrc`
+or `~/.bashrc`), replacing the placeholder with your actual token, then run
+`source ~/.zshrc` (or `source ~/.bashrc`) to reload.
+
+---
+
+## What's Next
+
+Now that you are set up:
+
+- Read the [Prompt Engineering guide](08-prompt-engineering.md) for best results
+- Browse the [Agents Reference](05-agents-reference.md) to see available workflows
+- Try the [Prompt Cookbook](appendix/prompt-cookbook.md) for copy-paste ready prompts
+
+---
+
+## See Also
+
+- [What Is This Toolkit?](01-what-is-this-toolkit.md) -- overview of what you just installed
+- [Prompt Engineering](08-prompt-engineering.md) -- how to write effective prompts
+- [Troubleshooting](13-troubleshooting.md) -- comprehensive problem-solving guide
+- [Back to documentation index](README.md)
