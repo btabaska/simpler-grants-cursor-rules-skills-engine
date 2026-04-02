@@ -1,0 +1,131 @@
+{
+  "sgg-component": {
+    "prefix": "sgg-component",
+    "description": "Simpler.Grants.gov React Server Component",
+    "body": [
+      "import { useTranslations } from \"next-intl\";",
+      "",
+      "export default function ${1:ComponentName}() {",
+      "  const t = useTranslations(\"${2:Namespace}\");",
+      "",
+      "  return (",
+      "    <div>",
+      "      <h1>{t(\"${3:header}\")}</h1>",
+      "      $0",
+      "    </div>",
+      "  );",
+      "}",
+      ""
+    ]
+  },
+  "sgg-client-component": {
+    "prefix": "sgg-client-component",
+    "description": "Simpler.Grants.gov Client Component (use only when client interactivity needed)",
+    "body": [
+      "\"use client\";",
+      "",
+      "import { useState } from \"react\";",
+      "import { useTranslations } from \"next-intl\";",
+      "",
+      "export function ${1:ComponentName}() {",
+      "  const t = useTranslations(\"${2:Namespace}\");",
+      "  const [${3:state}, set${3/(.*)/${1:/capitalize}/}] = useState(${4:initialValue});",
+      "",
+      "  return (",
+      "    <div>",
+      "      $0",
+      "    </div>",
+      "  );",
+      "}",
+      ""
+    ]
+  },
+  "sgg-hook": {
+    "prefix": "sgg-hook",
+    "description": "Simpler.Grants.gov custom hook",
+    "body": [
+      "\"use client\";",
+      "",
+      "import { useState, useCallback } from \"react\";",
+      "",
+      "export function use${1:HookName}(${2:params}) {",
+      "  const [${3:state}, set${3/(.*)/${1:/capitalize}/}] = useState(${4:initialValue});",
+      "",
+      "  const ${5:action} = useCallback(() => {",
+      "    $0",
+      "  }, []);",
+      "",
+      "  return { ${3:state}, ${5:action} };",
+      "}",
+      ""
+    ]
+  },
+  "sgg-fetcher": {
+    "prefix": "sgg-fetcher",
+    "description": "Simpler.Grants.gov requesterForEndpoint server-side fetcher",
+    "body": [
+      "import \"server-only\";",
+      "",
+      "import { requesterForEndpoint } from \"src/services/fetch\";",
+      "",
+      "export const fetch${1:Resource} = requesterForEndpoint({",
+      "  method: \"${2|GET,POST,PUT,PATCH,DELETE|}\",",
+      "  basePath: process.env.API_URL,",
+      "  endpointPath: \"/v1/${3:endpoint-path}\",",
+      "});",
+      ""
+    ]
+  },
+  "sgg-i18n-key": {
+    "prefix": "sgg-i18n-key",
+    "description": "Simpler.Grants.gov translation key block",
+    "body": [
+      "${1:PageName}: {",
+      "  pageTitle: \"${2:Page Title} | Simpler.Grants.gov\",",
+      "  header: \"${3:Page Header}\",",
+      "  ${4:description}: \"${5:Description text}\",",
+      "  $0",
+      "},"
+    ]
+  },
+  "sgg-test-component": {
+    "prefix": "sgg-test-component",
+    "description": "Simpler.Grants.gov component test with accessibility scan",
+    "body": [
+      "import { render, screen } from \"@testing-library/react\";",
+      "import { axe } from \"jest-axe\";",
+      "",
+      "import { ${1:ComponentName} } from \"src/components/${2:domain}/${1:ComponentName}\";",
+      "",
+      "describe(\"${1:ComponentName}\", () => {",
+      "  it(\"renders without errors\", () => {",
+      "    render(<${1:ComponentName} />);",
+      "    expect(screen.getByText(\"${3:expected text}\")).toBeInTheDocument();",
+      "  });",
+      "",
+      "  it(\"passes accessibility scan\", async () => {",
+      "    const { container } = render(<${1:ComponentName} />);",
+      "    const results = await axe(container);",
+      "    expect(results).toHaveNoViolations();",
+      "  });",
+      "",
+      "  $0",
+      "});",
+      ""
+    ]
+  },
+  "sgg-test-e2e": {
+    "prefix": "sgg-test-e2e",
+    "description": "Simpler.Grants.gov Playwright E2E test",
+    "body": [
+      "import { test, expect } from \"@playwright/test\";",
+      "",
+      "test(\"${1:feature} - ${2:scenario}\", async ({ page }) => {",
+      "  await page.goto(\"/${3:path}\");",
+      "  await expect(page.getByRole(\"heading\", { name: \"${4:Title}\" })).toBeVisible();",
+      "  $0",
+      "});",
+      ""
+    ]
+  }
+}

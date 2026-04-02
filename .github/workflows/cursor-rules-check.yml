@@ -1,0 +1,75 @@
+name: Validate Cursor Rules
+
+on:
+  push:
+    paths:
+      - '.cursor/rules/**'
+      - '.cursorrules'
+      - 'documentation/**'
+  pull_request:
+    paths:
+      - '.cursor/rules/**'
+      - '.cursorrules'
+      - 'documentation/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate .mdc frontmatter
+        run: |
+          errors=0
+          for file in .cursor/rules/*.mdc; do
+            if [[ -f "$file" ]]; then
+              first_line=$(head -1 "$file")
+              if [[ "$first_line" != "---" ]]; then
+                echo "ERROR: $file missing YAML frontmatter"
+                errors=$((errors + 1))
+              fi
+
+              # Check for required fields
+              head -20 "$file" | grep -q "description:" || {
+                echo "ERROR: $file missing 'description' in frontmatter"
+                errors=$((errors + 1))
+              }
+              head -20 "$file" | grep -q "globs:" || {
+                echo "ERROR: $file missing 'globs' in frontmatter"
+                errors=$((errors + 1))
+              }
+            fi
+          done
+
+          if [[ $errors -gt 0 ]]; then
+            echo "Found $errors frontmatter error(s)"
+            exit 1
+          fi
+          echo "All .mdc files have valid frontmatter"
+
+      - name: Check rule file count
+        run: |
+          count=$(ls -1 .cursor/rules/*.mdc 2>/dev/null | wc -l | tr -d ' ')
+          echo "Found $count .mdc rule files"
+          if [[ $count -lt 18 ]]; then
+            echo "WARNING: Expected at least 18 domain rules, found $count"
+          fi
+
+      - name: Validate documentation exists
+        run: |
+          if [[ ! -f "documentation/architecture-guide.md" ]]; then
+            echo "ERROR: documentation/architecture-guide.md is missing"
+            exit 1
+          fi
+
+          rule_count=$(ls -1 documentation/rules/*.md 2>/dev/null | wc -l | tr -d ' ')
+          echo "Found $rule_count detailed rule documents"
+
+      - name: Build MCP server
+        run: |
+          if [[ -f "mcp-server/package.json" ]]; then
+            cd mcp-server
+            npm install
+            npm run build
+            echo "MCP server builds successfully"
+          fi

@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ============================================================================
+# Simpler.Grants.gov Convention Validation — Pre-commit Hook
+#
+# Opt-in hook installed via setup.sh. Validates common convention violations
+# before commit. All checks are fast (file-name and pattern checks only).
+# ============================================================================
+
+ERRORS=0
+
+# ---- Check: No barrel files (index.ts re-exports) in frontend components ----
+BARREL_FILES=$(git diff --cached --name-only --diff-filter=A | grep -E 'frontend/src/components/.*/index\.(ts|tsx)$' || true)
+if [[ -n "$BARREL_FILES" ]]; then
+  echo "ERROR: Barrel files (index.ts) are not allowed in frontend components."
+  echo "  Import directly from the component file instead."
+  echo "  Files: $BARREL_FILES"
+  ERRORS=$((ERRORS + 1))
+fi
+
+# ---- Check: .mdc files have YAML frontmatter --------------------------------
+MDC_FILES=$(git diff --cached --name-only --diff-filter=AM | grep '\.mdc$' || true)
+for file in $MDC_FILES; do
+  if [[ -f "$file" ]]; then
+    FIRST_LINE=$(head -1 "$file")
+    if [[ "$FIRST_LINE" != "---" ]]; then
+      echo "ERROR: $file is missing YAML frontmatter (must start with ---)"
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+done
+
+# ---- Check: Python test files follow naming convention -----------------------
+TEST_FILES=$(git diff --cached --name-only --diff-filter=A | grep -E 'api/tests/.*\.py$' || true)
+for file in $TEST_FILES; do
+  basename=$(basename "$file")
+  if [[ "$basename" != "test_"* && "$basename" != "conftest.py" && "$basename" != "__init__.py" && "$basename" != *"factory"* ]]; then
+    echo "WARNING: $file — API test files should start with 'test_'"
+    # Warning only, not an error
+  fi
+done
+
+# ---- Check: No legacy Column() syntax in new model files ---------------------
+MODEL_FILES=$(git diff --cached --name-only --diff-filter=AM | grep -E 'api/src/db/models/.*\.py$' || true)
+for file in $MODEL_FILES; do
+  if [[ -f "$file" ]]; then
+    if git diff --cached "$file" | grep -q '^\+.*= Column('; then
+      echo "ERROR: $file uses legacy Column() syntax. Use Mapped[T] with mapped_column() instead."
+      ERRORS=$((ERRORS + 1))
+    fi
+  fi
+done
+
+# ---- Result ------------------------------------------------------------------
+if [[ $ERRORS -gt 0 ]]; then
+  echo ""
+  echo "Pre-commit check failed with $ERRORS error(s). Fix the issues above and try again."
+  exit 1
+fi

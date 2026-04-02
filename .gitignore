@@ -1,0 +1,8 @@
+extracted_data/
+research/extracted_data/
+.env
+__pycache__/
+*.pyc
+node_modules/
+mcp-server/dist/
+.DS_Store

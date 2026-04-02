@@ -1,0 +1,27 @@
+# simpler-grants-gov — Cursor Configuration
+
+This project uses scoped Cursor rules for domain-specific conventions.
+
+## Rules
+
+All coding conventions are enforced via `.cursor/rules/*.mdc` files. These rules
+activate automatically based on the file paths you're editing.
+
+## PR Reviews
+
+For pull request reviews, invoke the `pr-review` rule manually. It combines
+codebase convention enforcement with a comprehensive review checklist.
+
+## Architecture
+
+For project architecture and philosophy, see `documentation/architecture-guide.md`.
+For domain-specific conventions with rationale, see `documentation/rules/*.md`.
+
+## Key Conventions (always apply)
+
+- Structured logging: static messages + flat snake_case `extra={}` keys. No PII in logs.
+- Error handling: ALWAYS use `raise_flask_error()` with `ValidationErrorDetail` in the API.
+- Testing: tests ship with code in the same PR. Use factory `.build()` over `.create()`.
+- Frontend: server-first rendering. USWDS components preferred. No barrel files.
+- Naming: boolean fields use `is_*` / `has_*`. camelCase in TypeScript, snake_case in Python.
+- PRs: title format `[Issue N] Description`. Trunk-based development to `main`.

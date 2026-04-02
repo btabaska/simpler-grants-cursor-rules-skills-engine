@@ -1,0 +1,196 @@
+---
+description: "Agent: Generate tests following simpler-grants-gov patterns. Invoke manually when writing tests for API or frontend code."
+globs: []
+alwaysApply: false
+---
+
+# Test Generation Agent
+
+You are generating tests for simpler-grants-gov. Determine whether you're writing API tests (pytest) or frontend tests (Jest/Playwright), then follow the corresponding patterns.
+
+## Pre-Flight Context Loading
+
+Before generating tests, load context:
+
+1. Call `get_rules_for_file("[file path being tested]")` from the `simpler-grants-context` MCP server to understand the conventions the code under test should follow
+2. Call `get_rule_detail("api-tests")` or `get_rule_detail("frontend-tests")` to load the full testing conventions for the relevant surface
+3. Call `get_conventions_summary()` for cross-cutting project standards (factory patterns, structured logging, error handling)
+4. Consult **Compound Knowledge** for indexed documentation on test patterns, factory usage, and fixture conventions
+
+Do NOT skip this step. Tests informed by convention context catch more real issues.
+
+## Related Rules
+
+ALWAYS consult these related rules during test generation:
+- **`api-tests.mdc`** — factory `.build()` vs `.create()`, `enable_factory_create` fixture, route/service test structure, error testing
+- **`frontend-tests.mdc`** — jest-axe, mock patterns, async server component testing, Playwright E2E
+- **`api-routes.mdc`** — understand decorator stack to write correct route tests
+- **`api-services.mdc`** — understand service signatures to write correct service tests
+- **`api-error-handling.mdc`** — understand error patterns to test error paths correctly
+- **`cross-domain.mdc`** — factory pattern, structured logging assertions
+
+## API Tests (pytest)
+
+### Factory Decision Tree
+
+```
+Does the test need data in the database?
+├── YES → Use Factory.create()
+│         MUST request `enable_factory_create` fixture
+│         NEVER call db_session.commit() after create
+│         Used for: route tests, integration tests
+└── NO  → Use Factory.build()
+          No fixture needed, no database hit
+          Used for: service unit tests, validation tests, schema tests
+```
+
+### Route Test Pattern
+
+ALWAYS follow this structure: (1) create data, (2) HTTP request, (3) assert status code, (4) assert body.
+
+```python
+def test_<endpoint>_<status_code>(client, enable_factory_create, user_auth_token):
+    # 1. Create data
+    <model> = <Model>Factory.create()
+
+    # 2. HTTP request
+    response = client.get(
+        f"/v1/<domain>/{<model>.<model>_id}",
+        headers={"X-SGG-Token": user_auth_token},
+    )
+
+    # 3. Assert status code
+    assert response.status_code == 200
+
+    # 4. Assert body
+    data = response.json["data"]
+    assert data["<model>_id"] == str(<model>.<model>_id)
+```
+
+### Service Test Pattern
+
+```python
+def test_<service_function>_success(db_session, enable_factory_create):
+    <model> = <Model>Factory.create()
+    result = <service_function>(db_session, <model>.<model>_id)
+    assert result.<field> == expected_value
+
+def test_<service_function>_not_found(db_session):
+    with pytest.raises(Exception) as exc_info:
+        <service_function>(db_session, uuid.uuid4())
+    assert "not found" in str(exc_info.value).lower()
+```
+
+### Test Naming
+
+- ALWAYS use `test_<function_or_endpoint>_<scenario>` format
+- ALWAYS write as standalone functions, NEVER in classes (unless sharing `scope="class"` fixtures)
+- NEVER hardcode values the factory generates — reference the factory object
+
+### Error Tests
+
+```python
+def test_<endpoint>_422_invalid_input(client, user_auth_token):
+    response = client.post(
+        "/v1/<domain>/",
+        json={"invalid_field": "value"},
+        headers={"X-SGG-Token": user_auth_token},
+    )
+    assert response.status_code == 422
+```
+
+---
+
+## Frontend Tests (Jest + React Testing Library)
+
+### Component Test Pattern
+
+ALWAYS include an accessibility scan with jest-axe:
+
+```typescript
+import { render, screen } from "@testing-library/react";
+import { axe } from "jest-axe";
+import { MyComponent } from "src/components/domain/MyComponent";
+
+describe("MyComponent", () => {
+  it("renders without errors", () => {
+    const { container } = render(<MyComponent />);
+    expect(screen.getByText("Expected text")).toBeInTheDocument();
+  });
+
+  it("passes accessibility scan", async () => {
+    const { container } = render(<MyComponent />);
+    const results = await axe(container);
+    expect(results).toHaveNoViolations();
+  });
+});
+```
+
+### Hook Test Pattern
+
+```typescript
+import { renderHook, act } from "@testing-library/react";
+import { useMyHook } from "src/hooks/useMyHook";
+
+describe("useMyHook", () => {
+  it("returns expected initial state", () => {
+    const { result } = renderHook(() => useMyHook());
+    expect(result.current.value).toBe(expectedValue);
+  });
+});
+```
+
+### Mock Patterns
+
+- Mock API calls with `jest.mock("src/services/fetch")`
+- Mock `next/navigation` for router-dependent components
+- Mock `next-intl` for i18n-dependent components
+- NEVER mock implementation details — test behavior
+
+### E2E Tests (Playwright)
+
+```typescript
+import { test, expect } from "@playwright/test";
+
+test("<feature> — <scenario>", async ({ page }) => {
+  await page.goto("/path");
+  await expect(page.getByRole("heading", { name: "Title" })).toBeVisible();
+});
+```
+
+- Playwright tests live in `frontend/e2e/`
+- Use 4 shards for parallel execution
+- Use blob report merging for CI
+
+## Quality Gate Pipeline
+
+After generating tests, run the following specialist validation passes.
+
+### Gate 1: Convention Compliance (mandatory)
+Invoke `codebase-conventions-reviewer` to validate all generated tests against project testing conventions.
+- Check: factory usage (`.build()` vs `.create()`), test structure, naming conventions, fixture patterns, mock patterns
+- If violations found: fix them before proceeding
+
+### Gate 2: Test Efficiency (mandatory)
+Invoke `performance-oracle` to validate test performance patterns.
+- Check: unnecessary `Factory.create()` where `.build()` suffices, redundant DB operations, missing parametrize for input variations, proper fixture scoping
+- If issues found: fix before proceeding
+
+### Gate 3: Language Quality (mandatory)
+Invoke `kieran-python-reviewer` (for pytest) or `kieran-typescript-reviewer` (for Jest/Playwright) for language-specific quality.
+- Check: idiomatic test patterns, assertion quality, edge case coverage, type safety in mocks
+- If issues found: fix before proceeding
+
+### Gate 4: Data Integrity (conditional)
+If tests involve `Factory.create()` or database operations, invoke `data-integrity-guardian`.
+- Check: proper `enable_factory_create` fixture usage, no manual `db_session.commit()`, transaction isolation
+- If issues found: fix before presenting final output
+
+## Test Coverage Checklist
+
+- [ ] Success path (happy path)
+- [ ] Error/not-found path
+- [ ] Validation error path (422)
+- [ ] Auth failure path (401/403) if endpoint requires auth
+- [ ] Accessibility scan (frontend components)
+- [ ] Factory uses `.build()` where possible, `.create()` only when DB needed

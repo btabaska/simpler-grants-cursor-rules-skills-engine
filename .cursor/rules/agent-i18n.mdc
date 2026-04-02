@@ -1,0 +1,146 @@
+---
+description: "Agent: Manage translations and internationalization for simpler-grants-gov frontend. Invoke manually when adding or modifying user-facing text."
+globs: []
+alwaysApply: false
+---
+
+# i18n Agent
+
+You are managing internationalization for simpler-grants-gov. All user-facing text follows a centralized, single-file pattern.
+
+## Pre-Flight Context Loading
+
+Before adding or modifying translations, load context:
+
+1. Call `get_rule_detail("frontend-i18n")` from the `simpler-grants-context` MCP server to load the full i18n conventions
+2. Call `get_rule_detail("frontend-components")` to understand how components consume translations
+3. Call `get_conventions_summary()` for cross-cutting project standards
+4. Consult **Compound Knowledge** for indexed documentation on i18n patterns, key naming precedents, and translation structure
+
+Do NOT skip this step. Consistent key naming requires awareness of existing patterns.
+
+## Related Rules
+
+ALWAYS consult these related rules during i18n work:
+- **`frontend-i18n.mdc`** — centralized file, PascalCase namespaces, camelCase keys, `useTranslations`/`getTranslations`
+- **`frontend-components.mdc`** — mandatory i18n for user-facing strings, `useTranslations` in client vs `getTranslations` in server components
+- **`cross-domain.mdc`** — general naming conventions
+
+## Core Rules
+
+### Single Translation File
+ALL user-facing text lives in one file: `frontend/src/i18n/messages/en/index.ts`
+
+NEVER create separate translation files per page or feature.
+NEVER create non-English translation files (English-only until multi-language is formally adopted).
+
+### Key Structure
+
+The translation file uses a nested object with PascalCase top-level keys (matching page/feature names) and camelCase leaf keys:
+
+```typescript
+export const messages = {
+  // PascalCase top-level key = page or feature name
+  Opportunities: {
+    // camelCase leaf keys
+    pageTitle: "Opportunities | Simpler.Grants.gov",
+    header: "Search funding opportunities",
+    // Nested groups for sub-sections
+    filters: {
+      status: "Status",
+      agency: "Agency",
+      category: "Category",
+    },
+  },
+};
+```
+
+### Content in Values
+ALWAYS store content directly as translation string values. NEVER use:
+- Separate Markdown files
+- CMS references
+- External content files
+
+Long-form content goes directly in the translation value:
+
+```typescript
+codingChallenge: {
+  title: "Collaborative Coding Challenge",
+  descriptionP1:
+    "The Simpler.Grants.gov Collaborative Coding Challenge is an entirely virtual interactive event.",
+  descriptionP2:
+    "Participants will work together to improve the grants experience.",
+},
+```
+
+### Using Translations in Components
+
+```typescript
+// Server Component
+import { useTranslations } from "next-intl";
+
+export default function OpportunitiesPage() {
+  const t = useTranslations("Opportunities");
+  return <h1>{t("header")}</h1>;
+}
+```
+
+```typescript
+// Client Component — same API
+"use client";
+import { useTranslations } from "next-intl";
+
+export function SearchFilters() {
+  const t = useTranslations("Opportunities.filters");
+  return <label>{t("status")}</label>;
+}
+```
+
+## Adding New Text — Workflow
+
+1. **Identify the page/feature** this text belongs to
+2. **Find or create** the PascalCase top-level key in `messages/en/index.ts`
+3. **Add camelCase keys** for each piece of text
+4. **Use `useTranslations()`** in the component with the correct namespace
+5. **Never hardcode** user-facing strings in JSX
+
+## Key Naming Exceptions
+
+The ONLY exception to camelCase keys is when keys must match API enum values:
+
+```typescript
+// These match the API's ApplicationStatus enum
+applicationStatuses: {
+  application_created: "Application created",
+  application_submitted: "Application submitted",
+},
+```
+
+## Quality Gate Pipeline
+
+After adding or modifying translations, run the following specialist validation passes.
+
+### Gate 1: Convention Compliance (mandatory)
+Invoke `codebase-conventions-reviewer` to validate all changes against i18n conventions.
+- Check: PascalCase top-level keys, camelCase leaf keys, single file placement, no separate translation files, no hardcoded strings
+- If violations found: fix them before proceeding
+
+### Gate 2: Pattern Consistency (mandatory)
+Invoke `pattern-recognition-specialist` to validate key naming consistency and detect duplication.
+- Check: new keys follow existing naming patterns, no duplicate translations with different keys, consistent nesting depth
+- If issues found: fix before proceeding
+
+### Gate 3: Language Quality (mandatory)
+Invoke `kieran-typescript-reviewer` for TypeScript-specific quality review.
+- Check: correct `useTranslations` usage, proper namespace scoping, type safety of translation calls
+- If issues found: fix before presenting final output
+
+## Checklist
+
+- [ ] Text added to `frontend/src/i18n/messages/en/index.ts`
+- [ ] Top-level key is PascalCase (page/feature name)
+- [ ] Leaf keys are camelCase
+- [ ] Component uses `useTranslations()` hook
+- [ ] No hardcoded strings in JSX
+- [ ] No separate translation files created
+- [ ] No non-English locale files created

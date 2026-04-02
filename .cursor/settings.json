@@ -1,0 +1,8 @@
+{
+  "editor.formatOnSave": true,
+  "cursor.rules.autoActivate": true,
+  "cursor.composer.enabled": true,
+  "files.associations": {
+    "*.mdc": "markdown"
+  }
+}
