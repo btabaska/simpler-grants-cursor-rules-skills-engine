@@ -1,10 +1,24 @@
-# Simpler.Grants.gov AI Coding Toolkit
+# Simpler.Grants.gov Cursor Tooling
 
-An AI-powered coding toolkit for [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) that enforces project conventions, provides contextual guidance, and accelerates development through Cursor IDE integration.
+Cursor IDE rules, agents, and MCP servers for the [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) monorepo. Derived from **1,459 merged pull requests**, 50 ADRs, and pattern analysis across 14 codebase domains.
 
-Built from analysis of **1,459 merged pull requests** spanning 12 months of development history, 50 Architecture Decision Records, and cross-domain pattern synthesis across 14 codebase domains.
+> **New here?** Start with the [Documentation Library](docs/README.md) or jump to the [Prompt Cookbook](docs/appendix/prompt-cookbook.md).
 
-**New to this toolkit?** Start with the **[Documentation Library](docs/README.md)** — 15 in-depth guides covering setup, prompt engineering, workflow examples, agent tutorials, troubleshooting, and an FAQ for skeptics. Or jump straight to the **[Prompt Cookbook](docs/appendix/prompt-cookbook.md)** for 40+ copy-paste ready prompts.
+## Quick Start
+
+```bash
+# Clone alongside your monorepo
+git clone https://github.com/btabaska/simpler-grants-documentation-automation.git
+cd simpler-grants-documentation-automation
+
+# Run setup (creates symlinks into monorepo — nothing is copied or modified)
+./setup.sh
+
+# Open monorepo in Cursor
+cursor ../simpler-grants-gov
+```
+
+**Prerequisites:** [Cursor IDE](https://cursor.sh), [Node.js 18+](https://nodejs.org/), a clone of the monorepo, and a `GITHUB_PAT` env var.
 
 ## What's Included
 
@@ -16,34 +30,9 @@ Built from analysis of **1,459 merged pull requests** spanning 12 months of deve
 | **Code Snippets** | 15 | `sgg-*` prefixed snippets for project patterns |
 | **MCP Servers** | 3 | GitHub, filesystem, and custom architecture context |
 
-## Quick Start
+## Domain Rules
 
-### Prerequisites
-
-- [Cursor IDE](https://cursor.sh)
-- [Node.js](https://nodejs.org/) 18+ (for MCP servers)
-- A clone of [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov)
-- `GITHUB_PAT` environment variable (for GitHub MCP server)
-
-### Setup (3 steps)
-
-```bash
-# 1. Clone this toolkit alongside your monorepo
-git clone https://github.com/btabaska/simpler-grants-documentation-automation.git
-cd simpler-grants-documentation-automation
-
-# 2. Run the setup script
-./setup.sh
-
-# 3. Open the monorepo in Cursor
-cursor ../simpler-grants-gov
-```
-
-The setup script creates symlinks from this toolkit into your monorepo clone. No files are copied or modified in the monorepo itself.
-
-## Domain Rules (auto-activate)
-
-These rules activate automatically when you edit files matching their glob patterns:
+Auto-activate when you edit files matching their glob patterns:
 
 | Rule | Activates on | Key conventions |
 |------|-------------|-----------------|
@@ -66,28 +55,28 @@ These rules activate automatically when you edit files matching their glob patte
 | `forms-vertical` | Form-related files | Three-schema forms, custom validator |
 | `pr-review` | Manual invocation | Comprehensive PR review checklist |
 
-## Custom Agents (manually invoked)
+## Agents
 
-Invoke these in Cursor chat by referencing the rule name:
+Invoke in Cursor chat by referencing the rule name:
 
 | Agent | Use when... |
 |-------|-------------|
-| `agent-new-endpoint` | Creating a complete new API endpoint (blueprint + routes + schemas + service + tests) |
-| `agent-code-generation` | Generating any code and want the right domain rules applied automatically |
-| `agent-test-generation` | Writing tests (pytest or Jest/Playwright) following project patterns |
+| `agent-new-endpoint` | Creating a complete new API endpoint |
+| `agent-code-generation` | Generating code with the right domain rules applied |
+| `agent-test-generation` | Writing tests following project patterns |
 | `agent-migration` | Creating Alembic database migrations |
-| `agent-i18n` | Adding or modifying user-facing text/translations |
+| `agent-i18n` | Adding or modifying translations |
 | `agent-adr` | Documenting an architecture decision |
 
-## Notepads (reference in chat)
+## Notepads
 
-Reference these in Cursor chat for pre-loaded context:
+Reference in Cursor chat for pre-loaded context:
 
 | Notepad | Content |
 |---------|---------|
-| `architecture-overview` | Condensed 2-page version of the 50KB architecture guide |
+| `architecture-overview` | Condensed 2-page architecture guide |
 | `new-api-endpoint` | Step-by-step checklist with code skeletons |
-| `new-frontend-page` | RSC page template with data fetching patterns |
+| `new-frontend-page` | RSC page template with data fetching |
 | `new-form-field` | Three-schema form field addition guide |
 | `new-database-table` | Model + migration + factory checklist |
 | `debug-api-error` | Error flow diagram and debugging guide |
@@ -96,56 +85,48 @@ Reference these in Cursor chat for pre-loaded context:
 
 Type `sgg-` in any file to see all available snippets:
 
-### Python (API)
-- `sgg-route` — Route handler with full decorator stack
-- `sgg-service` — Service function with `db_session` parameter
-- `sgg-model` — SQLAlchemy model with `ApiSchemaTable` + `TimestampMixin`
-- `sgg-schema` — Marshmallow request/response schemas
-- `sgg-test` — Route test with factory pattern
-- `sgg-migration` — Alembic migration template
-- `sgg-log` — Structured log statement
-- `sgg-error` — `raise_flask_error()` with `ValidationErrorDetail`
+**Python (API):** `sgg-route`, `sgg-service`, `sgg-model`, `sgg-schema`, `sgg-test`, `sgg-migration`, `sgg-log`, `sgg-error`
 
-### TypeScript (Frontend)
-- `sgg-component` — React Server Component
-- `sgg-client-component` — Client component with `"use client"`
-- `sgg-hook` — Custom hook
-- `sgg-fetcher` — `requesterForEndpoint()` server-side fetcher
-- `sgg-i18n-key` — Translation key block
-- `sgg-test-component` — Component test with jest-axe
-- `sgg-test-e2e` — Playwright E2E test
+**TypeScript (Frontend):** `sgg-component`, `sgg-client-component`, `sgg-hook`, `sgg-fetcher`, `sgg-i18n-key`, `sgg-test-component`, `sgg-test-e2e`
 
 ## MCP Servers
 
 | Server | Purpose |
 |--------|---------|
 | **GitHub** | PR review, issue lookup, repository context |
-| **Filesystem** | Direct access to architecture guide and detailed rule docs |
-| **simpler-grants-context** | Custom server with targeted architecture section retrieval, file-to-rule dispatch, and conventions summary |
+| **Filesystem** | Direct access to architecture guide and rule docs |
+| **simpler-grants-context** | Architecture section retrieval, file-to-rule dispatch, conventions summary |
 
-### Custom MCP Server Tools
+The custom `simpler-grants-context` server exposes: `get_architecture_section()`, `get_rules_for_file()`, `get_rule_detail()`, `get_conventions_summary()`, `list_rules()`.
 
-The `simpler-grants-context` server exposes:
+## Recommended Plugins
 
-- `get_architecture_section(section)` — Get a specific section of the architecture guide
-- `get_rules_for_file(file_path)` — Get applicable rules for a file path
-- `get_rule_detail(rule_name)` — Get full detailed documentation for a rule
-- `get_conventions_summary()` — Get key project conventions
-- `list_rules()` — List all available rules with descriptions
+- **Compound Engineering** — 15 specialist sub-agents for quality validation (security, performance, conventions, etc.)
+- **Compound Knowledge** — Documentation indexing for context enrichment
 
-## Recommended Cursor Plugins
+## Documentation
 
-Install these Cursor community plugins for the best experience:
+This toolkit is designed for developers at all experience levels with AI tooling. The [Documentation Library](docs/README.md) covers everything from first setup to advanced workflows.
 
-- **compound-engineering** — Specialist review sub-agents (security, performance, simplicity) used by the PR review rule
-- **compound-knowledge** — Knowledge indexing for project documentation
+**Getting started:**
+- [What Is This Toolkit?](docs/01-what-is-this-toolkit.md) — what it does and why it exists
+- [How It Works](docs/02-how-it-works.md) — technical deep dive into rules, agents, MCP servers, and plugins
+- [Getting Started](docs/03-getting-started.md) — step-by-step setup with verification exercises
 
-## Detailed Documentation
+**Using the toolkit:**
+- [Auto-Activating Rules](docs/04-auto-activating-rules.md) — complete reference for all 18 domain rules
+- [Agents Reference](docs/05-agents-reference.md) — when and how to invoke each agent
+- [Prompt Engineering](docs/08-prompt-engineering.md) — how to write effective prompts, with before/after comparisons
+- [Workflow Examples](docs/09-workflow-examples.md) — 6 end-to-end annotated scenarios
+- [PR Review Guide](docs/11-pr-review-guide.md) — using the PR review skill and interpreting output
 
-For the full analysis behind each rule (with PR references, confidence levels, and rationale):
-
-- **Architecture Guide**: `documentation/architecture-guide.md` (50KB comprehensive guide)
-- **Detailed Rule Docs**: `documentation/rules/*.md` (18 files, ~12,000 lines total)
+**Reference:**
+- [Prompt Cookbook](docs/appendix/prompt-cookbook.md) — 40+ copy-paste ready prompts
+- [Rule Files Quick Reference](docs/appendix/rule-files-quick-reference.md) — printable one-page summary
+- [Troubleshooting](docs/13-troubleshooting.md) — symptom-based fixes for common issues
+- [FAQ for Skeptics](docs/14-faq-for-skeptics.md) — substantive answers for experienced developers
+- [Capabilities and Limitations](docs/12-capabilities-and-limitations.md) — honest assessment of what AI can and can't do
+- [Glossary](docs/15-glossary.md) — every project-specific and AI-tooling term defined
 
 ## How It Works
 
@@ -165,24 +146,21 @@ mcp-server/                            (custom MCP server)
 
 ## Repository Structure
 
-This repo has two parts:
-
 **Cursor Toolkit** (what your team uses):
 ```
 .cursor/            — Rules, agents, notepads, snippets, MCP config
 .cursorrules        — Root conventions index
-documentation/      — Architecture guide + detailed rule docs (used by MCP server)
+documentation/      — Architecture guide + detailed rule docs
 mcp-server/         — Custom MCP server for architecture context
 setup.sh            — Team onboarding script
+docs/               — 18-file documentation library
 ```
 
-**Pattern Research** (how the rules were generated):
+**Pattern Research** (how the rules were derived):
 ```
 research/
   analysis/         — Multi-pass LLM analysis (pass1 → pass2 → pass3)
   review/           — Human pattern reviews
-  cursor-test/      — Original cursor rule prototypes
-  cursor-rules-generated/ — Generated .mdc copies
   extracted_data/   — Raw PR JSON data (gitignored, ~29MB)
   extract.py        — GitHub PR extraction script
   prepare_batch.py  — Batch preparation for LLM analysis
