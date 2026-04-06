@@ -24,11 +24,14 @@ cursor ../simpler-grants-gov
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| **Domain Rules** | 18 | Auto-activating `.mdc` rules for API, Frontend, Infra, CI/CD |
-| **Custom Agents** | 6 | Manually invoked agents for common workflows |
+| **Domain Rules** | 24 | Auto-activating `.mdc` rules for API, Frontend, Infra, CI/CD |
+| **Standalone Agents** | 9 | Cursor subagents for structured multi-step workflows |
+| **Skills** | 4 | Reusable capabilities (PR review, quality gate, onboarding, flag cleanup) |
+| **Slash Commands** | 12 | Quick invocation entry points for agents and skills |
+| **Hook Lifecycle Events** | 6 | Event-driven automation for security, quality, and audit |
 | **Notepads** | 6 | Pre-loaded context documents for common tasks |
 | **Code Snippets** | 15 | `sgg-*` prefixed snippets for project patterns |
-| **MCP Servers** | 3 | GitHub, filesystem, and custom architecture context |
+| **MCP Servers** | 3 | GitHub, filesystem, and custom architecture context (10 tools) |
 
 ## Domain Rules
 
@@ -44,29 +47,47 @@ Auto-activate when you edit files matching their glob patterns:
 | `api-error-handling` | `api/src/**/*.py` | `raise_flask_error()`, structured errors |
 | `api-form-schema` | `api/src/form_schema/**/*.py` | Three-schema architecture |
 | `api-tests` | `api/tests/**/*.py` | Factory `.build()`/`.create()`, test structure |
+| `api-adapters` | `api/src/adapters/**/*.py` | External service adapter patterns |
+| `api-search` | `api/src/search/**/*.py` | OpenSearch integration patterns |
+| `api-tasks` | `api/src/task/**/*.py` | Background task patterns |
+| `api-workflow` | `api/src/workflow/**/*.py` | Workflow orchestration patterns |
+| `accessibility` | `frontend/src/**/*.tsx`, `frontend/src/**/*.ts` | WCAG 2.1 AA, Section 508 compliance |
 | `frontend-components` | `frontend/src/components/**/*` | RSC default, domain-based organization |
 | `frontend-hooks` | `frontend/src/hooks/**/*` | `useClientFetch`, custom hook patterns |
 | `frontend-services` | `frontend/src/services/**/*` | `requesterForEndpoint()`, server-only |
 | `frontend-i18n` | `frontend/src/i18n/**/*` | Single translation file, camelCase keys |
 | `frontend-tests` | `frontend/tests/**/*` | jest-axe, Playwright E2E |
+| `frontend-app-pages` | `frontend/src/app/**/*` | Next.js App Router pages, RSC layouts |
+| `frontend-e2e-tests` | `frontend/tests/e2e/**/*` | Playwright E2E test patterns |
 | `infra` | `infra/**/*.tf` | Three-layer Terraform architecture |
 | `ci-cd` | `.github/**/*.yml` | Three-job pipeline, reusable workflows |
 | `cross-domain` | All files | Structured logging, naming, error responses |
 | `forms-vertical` | Form-related files | Three-schema forms, custom validator |
-| `pr-review` | Manual invocation | Comprehensive PR review checklist |
 
 ## Agents
 
-Invoke in Cursor chat by referencing the rule name:
+Invoke via slash commands (preferred) or by name in Cursor chat:
 
-| Agent | Use when... |
+| Agent | Slash Command | Use when... |
+|-------|---------------|-------------|
+| `orchestrator` | — | Routing tasks to the right specialist agent |
+| `new-endpoint` | `/new-endpoint` | Creating a complete new API endpoint |
+| `code-generation` | `/generate` | Generating code with the right domain rules applied |
+| `test-generation` | `/test` | Writing tests following project patterns |
+| `migration` | `/migration` | Creating Alembic database migrations |
+| `i18n` | `/i18n` | Adding or modifying translations |
+| `adr` | `/adr` | Documenting an architecture decision |
+| `debugging` | `/debug` | Investigating errors, stack traces, failing tests |
+| `refactor` | `/refactor` | Multi-file structural changes with blast radius mapping |
+
+## Skills
+
+| Skill | Use when... |
 |-------|-------------|
-| `agent-new-endpoint` | Creating a complete new API endpoint |
-| `agent-code-generation` | Generating code with the right domain rules applied |
-| `agent-test-generation` | Writing tests following project patterns |
-| `agent-migration` | Creating Alembic database migrations |
-| `agent-i18n` | Adding or modifying translations |
-| `agent-adr` | Documenting an architecture decision |
+| `pr-review` | Reviewing PRs against team conventions |
+| `quality-gate` | Running multi-gate specialist validation on generated code |
+| `flag-cleanup` | Safely removing a fully-rolled-out feature flag |
+| `onboarding` | Guided onboarding for new developers |
 
 ## Notepads
 
@@ -97,7 +118,7 @@ Type `sgg-` in any file to see all available snippets:
 | **Filesystem** | Direct access to architecture guide and rule docs |
 | **simpler-grants-context** | Architecture section retrieval, file-to-rule dispatch, conventions summary |
 
-The custom `simpler-grants-context` server exposes: `get_architecture_section()`, `get_rules_for_file()`, `get_rule_detail()`, `get_conventions_summary()`, `list_rules()`.
+The custom `simpler-grants-context` server exposes 10 tools: `get_architecture_section()`, `get_rules_for_file()`, `get_rule_detail()`, `get_conventions_summary()`, `list_rules()`, `list_agents()`, `list_commands()`, `list_skills()`, `get_agent_detail()`, `get_skill_detail()`.
 
 ## Recommended Plugins
 
@@ -114,7 +135,7 @@ This toolkit is designed for developers at all experience levels with AI tooling
 - [Getting Started](docs/03-getting-started.md) — step-by-step setup with verification exercises
 
 **Using the toolkit:**
-- [Auto-Activating Rules](docs/04-auto-activating-rules.md) — complete reference for all 18 domain rules
+- [Auto-Activating Rules](docs/04-auto-activating-rules.md) — complete reference for all 24 domain rules
 - [Agents Reference](docs/05-agents-reference.md) — when and how to invoke each agent
 - [Prompt Engineering](docs/08-prompt-engineering.md) — how to write effective prompts, with before/after comparisons
 - [Workflow Examples](docs/09-workflow-examples.md) — 6 end-to-end annotated scenarios
@@ -135,7 +156,11 @@ This Toolkit Repo                    Your Monorepo Clone
 ==================                   ====================
 
 .cursor/                 ──symlink──>  .cursor/
-  rules/                               (auto-activating rules)
+  rules/                               (24 auto-activating rules)
+  agents/                              (9 standalone agents)
+  skills/                              (4 reusable skills)
+  commands/                            (12 slash commands)
+  hooks.json                           (6 hook lifecycle events)
   notepads/                            (reference in chat)
   snippets/                            (type sgg-*)
   mcp.json                             (MCP server config)
@@ -148,12 +173,12 @@ mcp-server/                            (custom MCP server)
 
 **Cursor Toolkit** (what your team uses):
 ```
-.cursor/            — Rules, agents, notepads, snippets, MCP config
+.cursor/            — Rules, agents, skills, commands, hooks, notepads, snippets, MCP config
 .cursorrules        — Root conventions index
 documentation/      — Architecture guide + detailed rule docs
-mcp-server/         — Custom MCP server for architecture context
+mcp-server/         — Custom MCP server for architecture context (10 tools)
 setup.sh            — Team onboarding script
-docs/               — 18-file documentation library
+docs/               — 20-file documentation library
 ```
 
 **Pattern Research** (how the rules were derived):

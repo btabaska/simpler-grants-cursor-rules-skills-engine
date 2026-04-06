@@ -321,7 +321,7 @@ ls ~/GitHub/simpler-grants-documentation-automation/mcp-server/dist/
 curl -s -o /dev/null -w "%{http_code}" -H "Authorization: Bearer $GITHUB_PAT" https://api.github.com/repos/HHS/simpler-grants-gov
 ```
 
-Expected: symlinks to toolkit, 18 `.mdc` files, Node v18+, PAT starts with `ghp_`, `dist/` exists, HTTP 200.
+Expected: symlinks to toolkit, 24 `.mdc` files, Node v18+, PAT starts with `ghp_`, `dist/` exists, HTTP 200.
 
 ---
 

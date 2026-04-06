@@ -12,7 +12,7 @@ Rules may need updating when:
 
 1. Edit the `.mdc` file in `.cursor/rules/`
 2. Update the corresponding detailed doc in `documentation/rules/`
-3. If the glob patterns changed, update the dispatch table in `pr-review.mdc`
+3. If the glob patterns changed, update the dispatch table in `.cursor/skills/pr-review/dispatch-table.md`
 
 ### Re-running the Analysis Pipeline
 
@@ -51,24 +51,19 @@ This will re-extract PRs, diff against current rules, and show what changed.
    ```
 2. Write rules using the ALWAYS/NEVER/MUST directive style
 3. Include real codebase examples
-4. Add the domain to the dispatch table in `pr-review.mdc`
+4. Add the domain to the dispatch table in `.cursor/skills/pr-review/dispatch-table.md`
 5. Create `documentation/rules/<domain>.md` with detailed analysis
 6. Update `README.md` tables
 
 ## Adding a New Agent
 
-1. Create `.cursor/rules/agent-<name>.mdc` with:
-   ```yaml
-   ---
-   description: "Agent: <description>"
-   globs: []
-   alwaysApply: false
-   ---
-   ```
-2. Write step-by-step workflow instructions
-3. Reference existing domain rules by name
-4. Include checklists
-5. Update `README.md` agents table
+1. Create `.cursor/agents/<name>.md` as a Cursor subagent file
+2. Include YAML frontmatter with `name`, `description`, and `model` fields
+3. Write step-by-step workflow instructions referencing domain rules by name
+4. Include pre-flight MCP context loading and quality gate pipeline steps
+5. Create a corresponding slash command in `.cursor/commands/<name>.md`
+6. Update the MCP server if the agent should be discoverable via `list_agents()`
+7. Update `README.md` agents table
 
 ## Adding a New Notepad
 
@@ -85,6 +80,29 @@ This will re-extract PRs, diff against current rules, and show what changed.
 2. Use the `sgg-` prefix for all snippet prefixes
 3. Follow VS Code snippet syntax with tabstops (`$1`, `$2`, `$0`)
 4. Update `README.md` snippets list
+
+## Adding a New Skill
+
+1. Create a directory `.cursor/skills/<name>/`
+2. Add a `SKILL.md` file with YAML frontmatter (`name`, `description`) and detailed instructions
+3. Add supporting files (checklists, templates, guides) in the same directory
+4. Update the MCP server if the skill should be discoverable via `list_skills()`
+5. Update `README.md` skills table
+
+## Adding a New Slash Command
+
+1. Create `.cursor/commands/<name>.md`
+2. Write the command prompt that invokes the corresponding agent or skill
+3. Keep it concise — the command is an entry point, not the full workflow
+4. Update `README.md` if the command represents a new capability
+
+## Adding or Modifying Hooks
+
+1. Edit `.cursor/hooks.json` to configure lifecycle event handlers
+2. Create handler files in `.cursor/hooks/handlers/<event>/`
+3. Create or update the dispatcher in `.cursor/hooks/dispatchers/`
+4. TypeScript hooks require Bun runtime — test with `bun run <dispatcher>`
+5. Update `docs/hooks-reference.md` and `docs/hook-coverage-matrix.md`
 
 ## Building the MCP Server
 

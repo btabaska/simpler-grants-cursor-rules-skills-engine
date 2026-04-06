@@ -139,23 +139,13 @@ If a rule is poorly written or ambiguous, the AI will produce inconsistent resul
 
 ### What Makes an Agent Different from a Rule
 
-An agent is a rule file with these frontmatter settings:
+Agents live in `.cursor/agents/` as standalone Markdown files (not `.mdc` rule files). They are discovered by Cursor as proper subagents.
 
-```yaml
----
-description: "Agent: Generate a complete new API endpoint."
-globs: []
-alwaysApply: false
----
-```
-
-The key difference: `globs: []` and `alwaysApply: false`. This means the agent never activates automatically. It only loads when you explicitly invoke it by typing `@agent-new-endpoint` in Cursor's chat.
-
-Structurally, an agent is just a longer, more detailed rule file. Where auto-activating rules contain short directives ("ALWAYS do X, NEVER do Y"), agents contain multi-step workflows with checklists.
+Unlike auto-activating rules that provide passive context via glob matching, agents are explicitly invoked — either via slash commands (`/new-endpoint`, `/debug`, `/refactor`) or by referencing their name in chat. Structurally, agents contain multi-step workflows with checklists, pre-flight context loading, and quality gate pipelines.
 
 ### Agent Content: Step-by-Step Workflows
 
-The `agent-new-endpoint.mdc` file is 158 lines long. It contains:
+The `new-endpoint.md` agent file contains:
 
 1. **A "Before You Start" section** that tells the AI to ask the developer for inputs: domain name, endpoint path, HTTP methods, auth requirements, whether new database models are needed.
 2. **Seven sequential steps**: create blueprint file, create route file, create schema file, create service file, create test file, register the blueprint, create factory (if needed).
@@ -167,9 +157,9 @@ Each step includes the exact file path pattern to create, the exact code structu
 
 This is where the system becomes more than the sum of its parts. When you invoke an agent while editing files, the AI sees both the agent's instructions and any auto-activated rules for the files you have open.
 
-Walk through what happens when you type `@agent-new-endpoint Create a GET /v1/agencies` in Cursor's chat:
+Walk through what happens when you type `/new-endpoint Create a GET /v1/agencies` in Cursor's chat:
 
-1. **`agent-new-endpoint.mdc` loads** because you explicitly invoked it with `@agent-new-endpoint`.
+1. **The `new-endpoint` agent loads** because you explicitly invoked it via the slash command.
 2. **Auto-active rules for your open files also load.** If you have `api/src/api/users/user_routes.py` open, then `api-routes.mdc`, `api-error-handling.mdc`, and `cross-domain.mdc` all activate.
 3. **The AI reads the agent's step-by-step workflow.** It knows to create a blueprint, routes, schemas, services, tests, and register the blueprint.
 4. **The AI also reads the auto-active rules.** It knows the decorator stack order, the thin handler pattern, the authentication conventions, the structured logging rules.
@@ -179,24 +169,27 @@ This composition is automatic. You do not need to configure it. The agent does n
 
 ### Available Agents
 
-The toolkit includes six agents:
+The toolkit includes nine agents:
 
-| Agent | Purpose |
-|---|---|
-| `agent-new-endpoint` | Generate a complete new API endpoint with all required files |
-| `agent-code-generation` | General-purpose code generation following project conventions |
-| `agent-test-generation` | Generate test files with proper structure and coverage |
-| `agent-migration` | Create database migration files with Alembic |
-| `agent-i18n` | Add internationalization support to frontend components |
-| `agent-adr` | Write an Architecture Decision Record |
+| Agent | Slash Command | Purpose |
+|---|---|---|
+| `orchestrator` | — | Route tasks to the appropriate specialist agent |
+| `new-endpoint` | `/new-endpoint` | Generate a complete new API endpoint with all required files |
+| `code-generation` | `/generate` | General-purpose code generation following project conventions |
+| `test-generation` | `/test` | Generate test files with proper structure and coverage |
+| `migration` | `/migration` | Create database migration files with Alembic |
+| `i18n` | `/i18n` | Add internationalization support to frontend components |
+| `adr` | `/adr` | Write an Architecture Decision Record |
+| `debugging` | `/debug` | Investigate errors, stack traces, and failing tests |
+| `refactor` | `/refactor` | Plan and execute multi-file structural changes |
 
-Each follows the same pattern: `globs: []`, `alwaysApply: false`, detailed step-by-step instructions.
+Each agent includes pre-flight MCP context loading and a quality gate pipeline using Compound Engineering specialists.
 
 ---
 
 ## The PR Review Skill
 
-The `pr-review.mdc` file is the most complex rule in the toolkit at nearly 300 lines. It is an agent (manually invoked, `globs: []`) that instructs the AI to perform a structured, multi-perspective code review.
+The PR review capability now lives as a skill in `.cursor/skills/pr-review/SKILL.md` with supporting files for the dispatch table, severity guide, voice guide, and checklist template. It instructs the AI to perform a structured, multi-perspective code review.
 
 ### The Dispatch Table
 
@@ -329,7 +322,7 @@ This is the only custom code in the entire MCP setup: approximately 300 lines of
 
 The architecture guide for simpler-grants-gov is approximately 50KB. The detailed rule documentation totals approximately 500KB. Loading all of that into the AI's context window on every interaction would waste thousands of tokens on irrelevant information.
 
-The custom server solves this by exposing five targeted tools:
+The custom server solves this by exposing ten targeted tools:
 
 | Tool | Purpose |
 |---|---|
@@ -338,6 +331,11 @@ The custom server solves this by exposing five targeted tools:
 | `get_rule_detail` | Returns the full documentation for a single named rule |
 | `get_conventions_summary` | Returns a high-level summary of key conventions |
 | `list_rules` | Lists all available rules with brief descriptions |
+| `list_agents` | Lists all available agents with descriptions |
+| `list_commands` | Lists all available slash commands |
+| `list_skills` | Lists all available skills with descriptions |
+| `get_agent_detail` | Returns the full content of a specific agent |
+| `get_skill_detail` | Returns the full content of a skill and its supporting files |
 
 The server includes the same file-path-to-rule mapping as the `pr-review.mdc` dispatch table, implemented as an array of regex patterns:
 
@@ -415,12 +413,17 @@ This means the AI doesn't just follow rules — it understands the *why* behind 
 
 ### MCP Server Tools — Dynamic Context Loading
 
-The custom `simpler-grants-context` MCP server provides 5 tools that agents and rules call for targeted context:
+The custom `simpler-grants-context` MCP server provides 10 tools that agents and rules call for targeted context:
 - `get_architecture_section(section)` — retrieve a specific section of the architecture guide
 - `get_rules_for_file(file_path)` — discover which rules apply to a given file
 - `get_rule_detail(rule_name)` — load the full text of a specific rule
 - `get_conventions_summary()` — get cross-cutting project conventions
 - `list_rules()` — list all available rules
+- `list_agents()` — list all available agents with descriptions
+- `list_commands()` — list all available slash commands
+- `list_skills()` — list all available skills with descriptions
+- `get_agent_detail(agent_name)` — get full content of a specific agent
+- `get_skill_detail(skill_name)` — get full content of a skill and its supporting files
 
 This avoids dumping the entire 50KB architecture guide into context. Instead, agents load only the sections they need.
 
@@ -447,6 +450,6 @@ The toolkit exists to make the AI a better pair programmer for this specific cod
 ## See Also
 
 - [What Is This Toolkit?](01-what-is-this-toolkit.md) -- overview and value proposition
-- [Auto-Activating Rules](04-auto-activating-rules.md) -- complete reference for all 18 rule files
+- [Auto-Activating Rules](04-auto-activating-rules.md) -- complete reference for all 24 rule files
 - [PR Review Guide](11-pr-review-guide.md) -- how to use the PR review skill
 - [Back to documentation index](README.md)

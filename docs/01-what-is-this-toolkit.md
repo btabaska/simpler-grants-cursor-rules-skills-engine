@@ -35,27 +35,53 @@ Consider what happens when a developer needs to add a new API endpoint. They nee
 
 ## What the Toolkit Provides
 
-The toolkit has six component types, each addressing a different aspect of the problem.
+The toolkit has nine component types, each addressing a different aspect of the problem.
 
-### 18 Auto-Activating Domain Rules
+### 24 Auto-Activating Domain Rules
 
 These are `.mdc` files in `.cursor/rules/` that activate automatically based on the file you are editing. When you open a file matching `api/src/api/**/*.py`, the `api-routes.mdc` rule loads and tells the AI about decorator stack ordering, blueprint organization, thin route handlers, and the project's specific patterns — complete with code examples extracted from actual merged PRs.
 
-The 18 rules cover the full stack: `api-routes`, `api-services`, `api-database`, `api-auth`, `api-validation`, `api-error-handling`, `api-form-schema`, `api-tests` on the backend; `frontend-components`, `frontend-hooks`, `frontend-services`, `frontend-i18n`, `frontend-tests` on the frontend; plus `infra`, `ci-cd`, `cross-domain`, and `forms-vertical` for infrastructure, pipelines, shared conventions, and the forms subsystem respectively.
+The 24 rules cover the full stack: `api-routes`, `api-services`, `api-database`, `api-auth`, `api-validation`, `api-error-handling`, `api-form-schema`, `api-tests`, `api-adapters`, `api-search`, `api-tasks`, `api-workflow` on the backend; `frontend-components`, `frontend-hooks`, `frontend-services`, `frontend-i18n`, `frontend-tests`, `frontend-app-pages`, `frontend-e2e-tests`, `accessibility` on the frontend; plus `infra`, `ci-cd`, `cross-domain`, and `forms-vertical` for infrastructure, pipelines, shared conventions, and the forms subsystem respectively.
 
 Each rule contains concrete directives like "ALWAYS use `raise_flask_error()` instead of raising raw HTTP exceptions" and "NEVER import client-side hooks in React Server Components," backed by references to the PRs where those patterns were established or enforced.
 
 You do not need to memorize which rules exist or when they apply. Cursor reads the `globs` field in each `.mdc` file and loads the relevant rules automatically when you open a matching file. Edit a file in `api/src/api/`, and the API rules are silently loaded. Edit a file in `front/src/`, and the frontend rules activate instead. The AI's behavior changes based on context without any manual configuration.
 
-### 6 Custom Agents
+### 9 Standalone Agents
 
-Agents are manually invoked rules that orchestrate multi-step workflows. Unlike auto-activating rules that provide passive context, agents actively guide the AI through a sequence of file creation and modification steps.
+Agents are Cursor subagents in `.cursor/agents/` that orchestrate multi-step workflows. Unlike auto-activating rules that provide passive context, agents actively guide the AI through a sequence of file creation and modification steps.
 
-The `agent-new-endpoint` agent, for example, asks you for a domain name, endpoint path, HTTP methods, and auth requirements, then walks the AI through creating the blueprint file, route handler, request/response schemas, service layer function, database queries, and tests — all following the project's conventions. The `agent-test-generation` agent understands the difference between `pytest` patterns on the backend (factory `.build()` vs `.create()`, `db_session` fixtures) and Jest/Playwright patterns on the frontend (jest-axe accessibility checks, `render()` utilities).
+The `new-endpoint` agent, for example, asks you for a domain name, endpoint path, HTTP methods, and auth requirements, then walks the AI through creating the blueprint file, route handler, request/response schemas, service layer function, database queries, and tests — all following the project's conventions. The `test-generation` agent understands the difference between `pytest` patterns on the backend (factory `.build()` vs `.create()`, `db_session` fixtures) and Jest/Playwright patterns on the frontend (jest-axe accessibility checks, `render()` utilities).
 
-The full set: `new-endpoint`, `code-generation`, `test-generation`, `migration`, `i18n`, and `ADR` (Architecture Decision Records).
+The full set: `orchestrator` (task routing), `new-endpoint`, `code-generation`, `test-generation`, `migration`, `i18n`, `adr`, `debugging`, and `refactor`.
 
-To invoke an agent, you reference its rule file in a Cursor conversation. The agent's `.mdc` file contains the full workflow instructions, so the AI knows which questions to ask and which steps to follow. You do not need to provide a multi-paragraph prompt — the agent already knows the process.
+To invoke an agent, use the corresponding slash command (e.g., `/new-endpoint`, `/debug`, `/refactor`) or reference it by name in Cursor chat. The agent file contains the full workflow instructions, so the AI knows which questions to ask and which steps to follow.
+
+### 4 Skills
+
+Skills are reusable capabilities with their own directories in `.cursor/skills/`, each containing a `SKILL.md` and supporting files. Unlike agents that orchestrate multi-step workflows, skills encapsulate focused capabilities that can be invoked standalone or called by agents.
+
+- **PR Review** — structured code review with a dispatch table, specialist passes, severity classification, and a style guide
+- **Quality Gate Pipeline** — multi-gate validation using Compound Engineering specialists, run by all agents after code generation
+- **Feature Flag Cleanup** — workflow for safely removing fully-rolled-out feature flags across all surfaces
+- **Developer Onboarding** — guided onboarding for new developers joining the project
+
+### 12 Slash Commands
+
+Slash commands in `.cursor/commands/` provide quick invocation entry points: `/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`, `/check-conventions`, `/tooling-health-check`, `/explain-architecture`.
+
+### 6 Hook Lifecycle Events
+
+The hooks system in `.cursor/hooks.json` provides event-driven automation that runs automatically during development:
+
+- **beforeShellExecution** — blocks dangerous commands, protects sensitive files
+- **beforeMCPExecution** — restricts MCP tool access to project scope
+- **beforeReadFile** — redacts secrets, blocks production credentials
+- **beforeSubmitPrompt** — audit logging for session tracking
+- **afterFileEdit** — auto-formatting, convention checks, import validation, accessibility checks, TODO scanning
+- **stop** — session summary, test runner, coverage reporter, audit log finalization
+
+Hooks run transparently via TypeScript dispatchers executed by Bun runtime.
 
 ### 6 Notepads
 
@@ -132,12 +158,15 @@ For quick reference, here is everything in the toolkit:
 
 | Component | Count | Location | Activation |
 |-----------|-------|----------|------------|
-| Auto-activating rules | 18 | `.cursor/rules/*.mdc` | Automatic (file glob match) |
-| Custom agents | 6 | `.cursor/rules/agent-*.mdc` | Manual invocation |
+| Auto-activating rules | 24 | `.cursor/rules/*.mdc` | Automatic (file glob match) |
+| Standalone agents | 9 | `.cursor/agents/*.md` | Slash command or `@agent-name` |
+| Skills | 4 | `.cursor/skills/*/SKILL.md` | Invoked by agents or directly |
+| Slash commands | 12 | `.cursor/commands/*.md` | `/command-name` in chat |
+| Hook lifecycle events | 6 | `.cursor/hooks.json` | Automatic (event-driven) |
 | Notepads | 6 | `.cursor/notepads/*.md` | Attach to conversation |
 | Code snippets | 15 | `.cursor/snippets/*.code-snippets` | Tab-completion (`sgg-` prefix) |
 | MCP servers | 3 | `.cursor/mcp.json` | Automatic (AI-initiated) |
-| PR review skill | 1 | `.cursor/rules/pr-review.mdc` | Manual invocation |
+| MCP server tools | 10 | `mcp-server/src/index.ts` | AI-initiated during conversation |
 
 The sections above explain each component in detail. The sections below explain how
 they were created and what their limitations are.

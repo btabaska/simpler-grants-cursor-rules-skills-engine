@@ -108,7 +108,7 @@ The toolkit configures up to three: GitHub (issues/PRs), `simpler-grants-context
 
 ### .mdc file
 The Cursor rule definition format. Each `.mdc` file has YAML-like frontmatter (glob
-pattern, description) followed by Markdown instructions. The toolkit ships 18 `.mdc`
+pattern, description) followed by Markdown instructions. The toolkit ships 24 `.mdc`
 files. See [Auto-Activating Rules](04-auto-activating-rules.md).
 
 ### Notepad (Cursor feature)
@@ -127,9 +127,30 @@ Components; the `frontend-components.mdc` rule requires an explicit `"use client
 directive only when client interactivity is needed. See
 [Auto-Activating Rules](04-auto-activating-rules.md#9-frontend-componentsmdc).
 
+### Hook (Cursor Hooks)
+An event-driven automation that runs automatically during development. Hooks are configured
+in `.cursor/hooks.json` and triggered by lifecycle events (e.g., file edits, shell commands,
+prompt submissions). The toolkit defines 6 hook lifecycle events covering security, quality,
+and audit concerns. See [Hooks Reference](hooks-reference.md).
+
+### Hook lifecycle event
+A specific trigger point in the development workflow. The toolkit uses: `beforeShellExecution`,
+`beforeMCPExecution`, `beforeReadFile`, `beforeSubmitPrompt`, `afterFileEdit`, and `stop`.
+Each event dispatches to one or more handler functions.
+
+### Orchestrator
+The master agent that routes tasks to the appropriate specialist subagent based on task type.
+It loads project context via MCP server tools and maintains a decision tree for task
+classification. See [Agents Reference](05-agents-reference.md).
+
+### Quality Gate Pipeline
+A multi-gate validation pipeline run by all agents after code generation. Uses Compound
+Engineering specialists to validate convention compliance, language quality, domain
+correctness, and architectural fit. See [Agents Reference](05-agents-reference.md).
+
 ### Rule file
-A `.mdc` file providing domain-specific instructions to the AI. Rule files can be
-auto-activating (glob-triggered), manually invoked, or always-on. The 18 rule files
+A `.mdc` file providing domain-specific instructions to the AI. Rule files are
+auto-activating based on glob patterns. The 24 rule files
 are the toolkit's core mechanism. See [Auto-Activating Rules](04-auto-activating-rules.md)
 and [How It Works](02-how-it-works.md).
 
@@ -137,6 +158,19 @@ and [How It Works](02-how-it-works.md).
 The architectural layer containing business logic between route handlers and database
 models. Each service module exposes functions (not classes). See
 [Auto-Activating Rules](04-auto-activating-rules.md#2-api-servicesmdc).
+
+### Skill (Cursor feature)
+A reusable capability with its own directory in `.cursor/skills/`, containing a `SKILL.md`
+and supporting files. Unlike agents that orchestrate multi-step workflows, skills encapsulate
+focused capabilities that can be invoked standalone or called by agents. The toolkit includes
+4 skills: pr-review, quality-gate, flag-cleanup, and onboarding.
+
+### Slash command
+A quick invocation entry point defined in `.cursor/commands/`. Type `/command-name` in
+Cursor chat to trigger the corresponding agent or skill. The toolkit provides 12 slash
+commands: `/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`,
+`/i18n`, `/adr`, `/review-pr`, `/check-conventions`, `/tooling-health-check`,
+`/explain-architecture`.
 
 ### Snippet (code snippet)
 A reusable code template demonstrating a project-specific pattern with placeholders.

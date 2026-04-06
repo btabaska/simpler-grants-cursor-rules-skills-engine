@@ -50,7 +50,7 @@ Choose your path based on where you are:
 | 01 | [What Is This Toolkit?](01-what-is-this-toolkit.md) | Overview of every component, how it was built, and what it is not |
 | 02 | [How It Works](02-how-it-works.md) | Technical deep dive into rules, agents, MCP servers, and the PR review skill |
 | 03 | [Getting Started](03-getting-started.md) | Step-by-step setup, verification exercises, and first-use tutorial |
-| 04 | [Auto-Activating Rules](04-auto-activating-rules.md) | Complete reference for all 18 rule files with examples |
+| 04 | [Auto-Activating Rules](04-auto-activating-rules.md) | Complete reference for all 24 rule files with examples |
 | 05 | [Agents Reference](05-agents-reference.md) | Deep reference for every agent: when to use, how to invoke, example prompts |
 | 06 | [Notepads Reference](06-notepads-reference.md) | When and how to use each notepad with example prompts |
 | 07 | [Code Snippets Reference](07-code-snippets-reference.md) | All 15 snippets with generated code examples |
@@ -62,6 +62,13 @@ Choose your path based on where you are:
 | 13 | [Troubleshooting](13-troubleshooting.md) | Symptom-based troubleshooting for every common issue |
 | 14 | [FAQ for Skeptics](14-faq-for-skeptics.md) | 15+ questions with substantive answers for experienced developers |
 | 15 | [Glossary](15-glossary.md) | Every project-specific and AI-tooling term defined |
+
+### Hooks & Events
+
+| Document | Description |
+|----------|-------------|
+| [Hooks Reference](hooks-reference.md) | Complete reference for all 6 hook lifecycle events and their handlers |
+| [Hook Coverage Matrix](hook-coverage-matrix.md) | Dispatch table showing which handlers run for each event |
 
 ### Appendix
 
@@ -76,42 +83,66 @@ Choose your path based on where you are:
 
 ```
 .cursor/
-├── rules/                              # Auto-activating and manually invoked rules
+├── rules/                              # 24 auto-activating domain rules
+│   ├── accessibility.mdc              # WCAG 2.1 AA, Section 508 compliance
+│   ├── api-adapters.mdc               # External service adapter patterns
 │   ├── api-auth.mdc                    # JWT + API key multi-auth patterns
 │   ├── api-database.mdc               # SQLAlchemy models, UUID PKs, lookup tables
 │   ├── api-error-handling.mdc          # raise_flask_error(), ValidationErrorDetail
 │   ├── api-form-schema.mdc            # Three-schema form architecture
 │   ├── api-routes.mdc                 # Decorator stack order, thin handlers
+│   ├── api-search.mdc                 # OpenSearch integration patterns
 │   ├── api-services.mdc              # Service layer, db_session first param
+│   ├── api-tasks.mdc                  # Background task patterns
 │   ├── api-tests.mdc                 # Factory .build()/.create(), test structure
 │   ├── api-validation.mdc            # ValidationErrorType enum, error details
+│   ├── api-workflow.mdc               # Workflow orchestration patterns
 │   ├── ci-cd.mdc                     # GitHub Actions, three-job pipeline
 │   ├── cross-domain.mdc             # Structured logging, naming, error responses
 │   ├── forms-vertical.mdc           # Three-schema forms, custom validator
+│   ├── frontend-app-pages.mdc        # Next.js App Router pages and layouts
 │   ├── frontend-components.mdc      # RSC default, domain-based organization
+│   ├── frontend-e2e-tests.mdc        # Playwright E2E test patterns
 │   ├── frontend-hooks.mdc           # useClientFetch, custom hook patterns
 │   ├── frontend-i18n.mdc            # Single translation file, camelCase keys
 │   ├── frontend-services.mdc        # requesterForEndpoint(), server-only
 │   ├── frontend-tests.mdc           # jest-axe, Playwright E2E
-│   ├── infra.mdc                    # Three-layer Terraform architecture
-│   ├── pr-review.mdc               # Comprehensive PR review checklist (manual)
-│   ├── agent-new-endpoint.mdc       # Create a complete API endpoint (manual)
-│   ├── agent-code-generation.mdc    # Domain-aware code generation (manual)
-│   ├── agent-test-generation.mdc    # pytest / Jest / Playwright tests (manual)
-│   ├── agent-migration.mdc          # Alembic database migrations (manual)
-│   ├── agent-i18n.mdc              # Translation management (manual)
-│   └── agent-adr.mdc               # Architecture Decision Records (manual)
-├── notepads/                          # Pre-loaded context documents
+│   └── infra.mdc                    # Three-layer Terraform architecture
+├── agents/                            # 9 standalone agents
+│   ├── orchestrator.md                # Task routing to specialist agents
+│   ├── new-endpoint.md               # Complete API endpoint generation
+│   ├── code-generation.md            # Domain-aware code generation
+│   ├── test-generation.md            # pytest / Jest / Playwright tests
+│   ├── migration.md                  # Alembic database migrations
+│   ├── i18n.md                       # Translation management
+│   ├── adr.md                        # Architecture Decision Records
+│   ├── debugging.md                  # Error investigation and root cause analysis
+│   └── refactor.md                   # Multi-file structural changes
+├── skills/                            # 4 reusable skills
+│   ├── pr-review/                    # Comprehensive PR review
+│   ├── quality-gate/                 # Multi-gate specialist validation
+│   ├── flag-cleanup/                 # Feature flag removal workflow
+│   └── onboarding/                   # Developer onboarding
+├── commands/                          # 12 slash commands
+│   ├── debug.md, refactor.md, new-endpoint.md, generate.md, test.md,
+│   │   migration.md, i18n.md, adr.md, review-pr.md, check-conventions.md,
+│   │   tooling-health-check.md, explain-architecture.md
+├── hooks.json                         # 6 hook lifecycle events
+├── hooks/                             # Hook dispatchers and handlers
+│   ├── dispatchers/                  # Event dispatchers (TypeScript/Bun)
+│   ├── handlers/                     # Individual handler implementations
+│   └── lib/                          # Shared hook utilities
+├── notepads/                          # 6 pre-loaded context documents
 │   ├── architecture-overview.md      # Condensed architecture guide
 │   ├── new-api-endpoint.md          # Endpoint creation checklist
 │   ├── new-frontend-page.md         # Next.js page creation guide
 │   ├── new-form-field.md            # Three-schema form field guide
 │   ├── new-database-table.md        # Model + migration checklist
 │   └── debug-api-error.md           # Error flow and debugging guide
-├── snippets/                          # Code snippet templates
+├── snippets/                          # 15 code snippet templates
 │   ├── python-api.code-snippets     # sgg-route, sgg-service, sgg-model, etc.
 │   └── typescript-frontend.code-snippets  # sgg-component, sgg-hook, etc.
-├── mcp.json                           # MCP server configuration
+├── mcp.json                           # MCP server configuration (3 servers)
 └── settings.json                      # Cursor project settings
 ```
 

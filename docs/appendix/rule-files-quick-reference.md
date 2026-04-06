@@ -11,11 +11,11 @@ Printable one-page reference for all rule files in the Simpler.Grants.gov AI Cod
 
 ---
 
-## Auto-Activating Rules (18 total)
+## Auto-Activating Rules (24 total)
 
 Rules load automatically when you edit a file matching the glob pattern.
 
-### API Rules
+### API Rules (12)
 
 | # | Rule File | Glob Pattern | Top 3 Directives |
 |---|-----------|-------------|-------------------|
@@ -27,41 +27,61 @@ Rules load automatically when you edit a file matching the glob pattern.
 | 6 | `api-error-handling.mdc` | `api/src/**/*.py` | Use `raise_flask_error()` with `ValidationErrorDetail`; log 4xx at info; never raw `abort()` |
 | 7 | `api-form-schema.mdc` | `api/src/form_schema/**/*.py` | Three-schema architecture (JSON, UI, Rule); use `OUR_VALIDATOR`; XML matches Grants.gov format |
 | 8 | `api-tests.mdc` | `api/tests/**/*.py` | `Factory.build()` for unit, `.create()` for integration; `enable_factory_create` fixture; standalone functions |
+| 9 | `api-adapters.mdc` | `api/src/adapters/**/*.py` | External service adapter patterns; error handling and retry logic; structured logging |
+| 10 | `api-search.mdc` | `api/src/search/**/*.py` | OpenSearch query construction; index management; search result transformation |
+| 11 | `api-tasks.mdc` | `api/src/task/**/*.py` | Background task patterns; task error handling and retry; structured logging |
+| 12 | `api-workflow.mdc` | `api/src/workflow/**/*.py` | Workflow step definition; multi-step orchestration; error handling and recovery |
 
-### Frontend Rules
-
-| # | Rule File | Glob Pattern | Top 3 Directives |
-|---|-----------|-------------|-------------------|
-| 9 | `frontend-components.mdc` | `frontend/src/components/**/*` | RSC by default, `"use client"` only when needed; no barrel files; prefer USWDS |
-| 10 | `frontend-hooks.mdc` | `frontend/src/hooks/**/*` | `useClientFetch` for data fetching; `useSearchParamUpdater` for URL state; auth hooks |
-| 11 | `frontend-services.mdc` | `frontend/src/services/**/*` | `requesterForEndpoint()` factory; `"server-only"` directive; `cache()` for deduplication |
-| 12 | `frontend-i18n.mdc` | `frontend/src/i18n/**/*` | Single file `messages/en/index.ts`; PascalCase top-level, camelCase leaf; `useTranslations()` |
-| 13 | `frontend-tests.mdc` | `frontend/tests/**/*`, `frontend/e2e/**/*` | `jest-axe` in every test; Jest + RTL for unit, Playwright for E2E; mock API calls only |
-
-### Infrastructure and Cross-Cutting Rules
+### Frontend Rules (8)
 
 | # | Rule File | Glob Pattern | Top 3 Directives |
 |---|-----------|-------------|-------------------|
-| 14 | `infra.mdc` | `infra/**/*.tf` | Three-layer Terraform: app-config, service, database; SSM feature flags; SSM in all envs before merge |
-| 15 | `ci-cd.mdc` | `.github/**/*.yml` | Three-job pipeline: checks, deploy, notify; reusable workflows; Docker caching + Playwright 4-shard |
-| 16 | `forms-vertical.mdc` | `**/form*/**/*` | Three-schema form definition; custom `OUR_VALIDATOR`; test triad: minimal, full, empty |
-| 17 | `cross-domain.mdc` | `**/*` | Structured logging: static messages + `extra={}`; boolean names: `is_*`, `has_*`, `can_*`; no wildcard eager loading |
-| 18 | `pr-review.mdc` | _(manual only)_ | Multi-pass convention review; severity: blocking, suggestion, nit; organized by category |
+| 13 | `accessibility.mdc` | `frontend/src/**/*.tsx`, `frontend/src/**/*.ts` | WCAG 2.1 AA / Section 508 compliance; semantic HTML + ARIA; jest-axe in tests |
+| 14 | `frontend-app-pages.mdc` | `frontend/src/app/**/*` | RSC by default for pages/layouts; `requesterForEndpoint` data fetching; promise-as-props |
+| 15 | `frontend-components.mdc` | `frontend/src/components/**/*` | RSC by default, `"use client"` only when needed; no barrel files; prefer USWDS |
+| 16 | `frontend-e2e-tests.mdc` | `frontend/tests/e2e/**/*` | Playwright test structure; 4-shard execution; network-level API mocking |
+| 17 | `frontend-hooks.mdc` | `frontend/src/hooks/**/*` | `useClientFetch` for data fetching; `useSearchParamUpdater` for URL state; auth hooks |
+| 18 | `frontend-services.mdc` | `frontend/src/services/**/*` | `requesterForEndpoint()` factory; `"server-only"` directive; `cache()` for deduplication |
+| 19 | `frontend-i18n.mdc` | `frontend/src/i18n/**/*` | Single file `messages/en/index.ts`; PascalCase top-level, camelCase leaf; `useTranslations()` |
+| 20 | `frontend-tests.mdc` | `frontend/tests/**/*`, `frontend/src/**/*.test.*` | `jest-axe` in every test; Jest + RTL for unit, Playwright for E2E; mock API calls only |
+
+### Infrastructure and Cross-Cutting Rules (4)
+
+| # | Rule File | Glob Pattern | Top 3 Directives |
+|---|-----------|-------------|-------------------|
+| 21 | `infra.mdc` | `infra/**/*.tf` | Three-layer Terraform: app-config, service, database; SSM feature flags; SSM in all envs before merge |
+| 22 | `ci-cd.mdc` | `.github/**/*.yml` | Three-job pipeline: checks, deploy, notify; reusable workflows; Docker caching + Playwright 4-shard |
+| 23 | `forms-vertical.mdc` | `**/form*/**/*` | Three-schema form definition; custom `OUR_VALIDATOR`; test triad: minimal, full, empty |
+| 24 | `cross-domain.mdc` | `**/*` | Structured logging: static messages + `extra={}`; boolean names: `is_*`, `has_*`, `can_*`; no wildcard eager loading |
 
 ---
 
-## Agent Rules (6 total)
+## Standalone Agents (9 total)
 
-Agents are invoked manually by name. They do not auto-activate.
+Agents live in `.cursor/agents/` and are invoked via slash commands or by name.
 
-| Agent | Purpose | Invocation Hint |
-|-------|---------|-----------------|
-| `@agent-new-endpoint` | Scaffold complete API endpoint (7 files) | `@agent-new-endpoint Create POST /v1/users/<id>/searches with JWT auth` |
-| `@agent-code-generation` | Domain-aware single-file generation | `@agent-code-generation Write a service function for ...` |
-| `@agent-test-generation` | Tests with factory, jest-axe, Playwright patterns | `@agent-test-generation Write tests for GET /v1/agencies/<id>/contacts` |
-| `@agent-migration` | Alembic migration with schema="api" and UUID PKs | `@agent-migration Add nullable phone_number to user table` |
-| `@agent-i18n` | Add translations to centralized i18n file | `@agent-i18n Add translations for SavedSearches page` |
-| `@agent-adr` | Architecture Decision Record with standard sections | `@agent-adr Document decision to use Redis for caching` |
+| Agent | Slash Command | Purpose |
+|-------|---------------|---------|
+| `orchestrator` | — | Route tasks to the appropriate specialist agent |
+| `new-endpoint` | `/new-endpoint` | Scaffold complete API endpoint (7 files) |
+| `code-generation` | `/generate` | Domain-aware single-file generation |
+| `test-generation` | `/test` | Tests with factory, jest-axe, Playwright patterns |
+| `migration` | `/migration` | Alembic migration with schema="api" and UUID PKs |
+| `i18n` | `/i18n` | Add translations to centralized i18n file |
+| `adr` | `/adr` | Architecture Decision Record with standard sections |
+| `debugging` | `/debug` | Investigate errors, stack traces, failing tests |
+| `refactor` | `/refactor` | Multi-file structural changes with blast radius mapping |
+
+## Skills (4 total)
+
+Skills live in `.cursor/skills/` with their own directories and supporting files.
+
+| Skill | Purpose |
+|-------|---------|
+| `pr-review` | Multi-pass convention review with dispatch table and specialist passes |
+| `quality-gate` | Multi-gate specialist validation pipeline used by all agents |
+| `flag-cleanup` | Feature flag removal workflow across all surfaces |
+| `onboarding` | Guided developer onboarding workflow |
 
 ---
 
@@ -120,12 +140,14 @@ Every rule and agent invokes Compound Engineering specialists for quality valida
 
 | Agent | Specialists in Pipeline |
 |-------|----------------------|
-| `agent-new-endpoint` | conventions, architecture, security, python, performance (conditional) |
-| `agent-code-generation` | conventions, domain-specific, language, pattern-recognition (conditional) |
-| `agent-test-generation` | conventions, performance, language, data-integrity (conditional) |
-| `agent-migration` | conventions, migration-expert, data-integrity, schema-drift, deployment (conditional) |
-| `agent-i18n` | conventions, pattern-recognition, typescript |
-| `agent-adr` | conventions, architecture, git-history (conditional) |
+| `new-endpoint` | conventions, architecture, security, python, performance (conditional) |
+| `code-generation` | conventions, domain-specific, language, pattern-recognition (conditional) |
+| `test-generation` | conventions, performance, language, data-integrity (conditional) |
+| `migration` | conventions, migration-expert, data-integrity, schema-drift, deployment (conditional) |
+| `i18n` | conventions, pattern-recognition, typescript |
+| `adr` | conventions, architecture, git-history (conditional) |
+| `debugging` | conventions, language reviewers, security, performance, data-integrity |
+| `refactor` | conventions, language, code-simplicity, pattern-consistency, architecture |
 
 **Domain Rule Specialist Dispatch:**
 

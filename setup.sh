@@ -207,7 +207,7 @@ done
 # Check rule file count
 RULE_COUNT=$(ls -1 "$TOOLKIT_DIR/.cursor/rules/"*.mdc 2>/dev/null | wc -l | tr -d ' ')
 if [[ "$RULE_COUNT" -eq 24 ]]; then
-  echo -e "  ${GREEN}✓${NC} All 24 rule files present (18 domain + 6 agents)"
+  echo -e "  ${GREEN}✓${NC} All 24 domain rule files present"
 else
   echo -e "  ${RED}✗${NC} Expected 24 rule files, found $RULE_COUNT"
   ISSUES=$((ISSUES + 1))
@@ -227,6 +227,25 @@ if [[ -f "$TOOLKIT_DIR/.cursor/mcp.json" ]]; then
 else
   echo -e "  ${RED}✗${NC} MCP server configuration missing"
   ISSUES=$((ISSUES + 1))
+fi
+
+# Check agents
+AGENT_COUNT=$(ls -1 "$TOOLKIT_DIR/.cursor/agents/"*.md 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}✓${NC} $AGENT_COUNT agents available"
+
+# Check skills
+SKILL_COUNT=$(ls -1d "$TOOLKIT_DIR/.cursor/skills/"*/ 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}✓${NC} $SKILL_COUNT skills available"
+
+# Check commands
+COMMAND_COUNT=$(ls -1 "$TOOLKIT_DIR/.cursor/commands/"*.md 2>/dev/null | wc -l | tr -d ' ')
+echo -e "  ${GREEN}✓${NC} $COMMAND_COUNT slash commands available"
+
+# Check hooks
+if [[ -f "$TOOLKIT_DIR/.cursor/hooks.json" ]]; then
+  echo -e "  ${GREEN}✓${NC} Hook lifecycle events configured (.cursor/hooks.json)"
+else
+  echo -e "  ${YELLOW}⚠${NC} Hook configuration missing (.cursor/hooks.json)"
 fi
 
 # Check notepads and snippets
@@ -251,18 +270,26 @@ echo ""
 echo "What's now available in Cursor:"
 echo ""
 echo "  Rules (auto-activate based on file path):"
-echo "    18 domain-specific rules for API, Frontend, Infra, CI/CD"
+echo "    24 domain-specific rules for API, Frontend, Infra, CI/CD"
 echo "    Each rule triggers Compound Engineering specialists for quality validation"
 echo ""
-echo "  Agents (invoke manually in chat):"
-echo "    @agent-new-endpoint    — Generate a complete API endpoint"
-echo "    @agent-code-generation — Generate code following project patterns"
-echo "    @agent-test-generation — Generate tests (pytest / Jest / Playwright)"
-echo "    @agent-migration       — Generate Alembic database migrations"
-echo "    @agent-i18n            — Manage translations"
-echo "    @agent-adr             — Write Architecture Decision Records"
-echo "    @pr-review             — Review a PR against team conventions"
+echo "  Agents (invoke via slash commands or by name):"
+echo "    /new-endpoint  — Generate a complete API endpoint"
+echo "    /generate      — Generate code following project patterns"
+echo "    /test          — Generate tests (pytest / Jest / Playwright)"
+echo "    /migration     — Generate Alembic database migrations"
+echo "    /i18n          — Manage translations"
+echo "    /adr           — Write Architecture Decision Records"
+echo "    /debug         — Investigate errors and failing tests"
+echo "    /refactor      — Multi-file structural changes"
+echo "    /review-pr     — Review a PR against team conventions"
 echo "    Each agent runs a multi-gate quality pipeline using Compound Engineering"
+echo ""
+echo "  Skills:"
+echo "    pr-review      — Comprehensive code review with specialist passes"
+echo "    quality-gate   — Multi-gate specialist validation pipeline"
+echo "    flag-cleanup   — Feature flag removal workflow"
+echo "    onboarding     — Guided developer onboarding"
 echo ""
 echo "  Notepads (reference in chat with @notepad-name):"
 echo "    new-api-endpoint, new-frontend-page, new-form-field,"
@@ -281,7 +308,7 @@ echo "    Compound Engineering — 15 specialist sub-agents for quality validati
 echo "    Compound Knowledge  — Documentation indexing for AI context enrichment"
 echo ""
 echo "  Documentation:"
-echo "    docs/README.md      — Full documentation library (15 guides + appendix)"
+echo "    docs/README.md      — Full documentation library (20 files)"
 echo ""
 echo -e "Open ${BOLD}$MONOREPO_DIR${NC} in Cursor to get started."
 echo ""

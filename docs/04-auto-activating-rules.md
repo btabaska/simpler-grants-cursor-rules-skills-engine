@@ -2,7 +2,7 @@
 
 > **Before reading this:** Familiarity with [How It Works](02-how-it-works.md) is helpful but not required. Each rule entry below is self-contained.
 
-This is the complete reference for all 18 auto-activating rule files in the Simpler Grants toolkit. Each rule is a `.mdc` file that Cursor loads automatically based on the file you are editing.
+This is the complete reference for all 24 auto-activating rule files in the Simpler Grants toolkit. Each rule is a `.mdc` file that Cursor loads automatically based on the file you are editing.
 
 ---
 
@@ -25,12 +25,19 @@ The table below maps every file path pattern to its corresponding rule file.
 | `api/src/validation/**/*.py` | `api-validation.mdc` | API Validation |
 | `api/src/**/*.py` | `api-error-handling.mdc` | API Error Handling |
 | `api/src/form_schema/**/*.py` | `api-form-schema.mdc` | API Forms |
+| `api/src/adapters/**/*.py` | `api-adapters.mdc` | API Adapters |
+| `api/src/search/**/*.py` | `api-search.mdc` | API Search |
+| `api/src/task/**/*.py` | `api-tasks.mdc` | API Tasks |
+| `api/src/workflow/**/*.py` | `api-workflow.mdc` | API Workflow |
 | `api/tests/**/*.py` | `api-tests.mdc` | API Tests |
+| `frontend/src/**/*.tsx`, `frontend/src/**/*.ts` | `accessibility.mdc` | Accessibility |
+| `frontend/src/app/**/*.tsx`, `frontend/src/app/**/*.ts` | `frontend-app-pages.mdc` | Frontend Pages |
 | `frontend/src/components/**/*` | `frontend-components.mdc` | Frontend Components |
 | `frontend/src/hooks/**/*` | `frontend-hooks.mdc` | Frontend Hooks |
 | `frontend/src/services/**/*` | `frontend-services.mdc` | Frontend Services |
 | `frontend/src/i18n/**/*` | `frontend-i18n.mdc` | Frontend i18n |
-| `frontend/tests/**/*` & `frontend/e2e/**/*` | `frontend-tests.mdc` | Frontend Tests |
+| `frontend/tests/**/*` & `frontend/src/**/*.test.*` | `frontend-tests.mdc` | Frontend Tests |
+| `frontend/tests/e2e/**/*` | `frontend-e2e-tests.mdc` | Frontend E2E Tests |
 | `infra/**/*.tf` | `infra.mdc` | Infrastructure |
 | `.github/**/*.yml` | `ci-cd.mdc` | CI/CD |
 | `**/form*/**/*` | `forms-vertical.mdc` | Forms Cross-cut |
@@ -583,6 +590,100 @@ It uses `OUR_VALIDATOR` rather than the default `jsonschema` validator and alway
 ### 18. api-form-schema.mdc (revisited as distinct from forms-vertical)
 
 Note: `api-form-schema.mdc` and `forms-vertical.mdc` both activate for files under `api/src/form_schema/`. They complement each other -- `api-form-schema.mdc` provides API-specific form schema directives (XML output, Grants.gov compatibility), while `forms-vertical.mdc` provides cross-cutting form patterns (test triad, non-blocking validation).
+
+---
+
+### 19. accessibility.mdc
+
+**Glob pattern:** `frontend/src/**/*.tsx`, `frontend/src/**/*.ts`
+**Activates when:** You edit any TypeScript or TSX file under the frontend source directory.
+
+**Key directives:**
+
+- **MUST** comply with WCAG 2.1 AA and Section 508 — legally mandated for this federal project
+- **ALWAYS** use semantic HTML elements and ARIA attributes
+- **ALWAYS** include `jest-axe` accessibility scans in component tests
+- **ALWAYS** use USWDS components from `@trussworks/react-uswds` for accessible defaults
+
+---
+
+### 20. api-adapters.mdc
+
+**Glob pattern:** `api/src/adapters/**/*.py`
+**Activates when:** You edit any Python file under the external service adapters directory.
+
+**Key directives:**
+
+- Adapter patterns for wrapping external APIs and third-party services
+- Error handling and retry logic conventions
+- Structured logging for external service calls
+
+---
+
+### 21. api-search.mdc
+
+**Glob pattern:** `api/src/search/**/*.py`
+**Activates when:** You edit any Python file under the search directory, where OpenSearch integration lives.
+
+**Key directives:**
+
+- OpenSearch query construction patterns
+- Index management conventions
+- Search result transformation and pagination
+
+---
+
+### 22. api-tasks.mdc
+
+**Glob pattern:** `api/src/task/**/*.py`
+**Activates when:** You edit any Python file under the task directory, where background tasks live.
+
+**Key directives:**
+
+- Background task definition and scheduling patterns
+- Task error handling and retry conventions
+- Structured logging for task execution
+
+---
+
+### 23. api-workflow.mdc
+
+**Glob pattern:** `api/src/workflow/**/*.py`
+**Activates when:** You edit any Python file under the workflow directory, where orchestration logic lives.
+
+**Key directives:**
+
+- Workflow step definition and state management
+- Multi-step process orchestration patterns
+- Workflow error handling and recovery
+
+---
+
+### 24. frontend-app-pages.mdc
+
+**Glob pattern:** `frontend/src/app/**/*.tsx`, `frontend/src/app/**/*.ts`
+**Activates when:** You edit any TypeScript file under the Next.js App Router pages directory.
+
+**Key directives:**
+
+- React Server Components by default for pages and layouts
+- Data fetching patterns using `requesterForEndpoint` factory
+- Promise-as-props pattern for non-blocking data loading
+- Page metadata and SEO conventions
+
+---
+
+### 25. frontend-e2e-tests.mdc
+
+**Glob pattern:** `frontend/tests/e2e/**/*`
+**Activates when:** You edit any file under the Playwright E2E test directory.
+
+**Key directives:**
+
+- Playwright test structure and organization
+- 4-shard parallel execution model
+- Network-level API mocking (not implementation mocking)
+- Blob report merging for CI
 
 ---
 

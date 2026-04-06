@@ -31,7 +31,7 @@ codebase but lacks judgment.**
 It knows that route decorators follow a specific top-to-bottom order. It knows that
 `db_session` must be the first parameter of service functions. It knows that frontend
 components default to React Server Components. It knows all of this because the toolkit's
-18 domain rules, 6 notepads, and 15 code snippets encode these conventions explicitly.
+24 domain rules, 6 notepads, and 15 code snippets encode these conventions explicitly.
 
 What it does not know is *when to break the rules*. It cannot tell you whether a new
 feature warrants a new service or should extend an existing one. It cannot evaluate whether
@@ -362,4 +362,4 @@ For the full experience, install all plugins per the [Getting Started](03-gettin
 
 ---
 
-*Previous: [11 -- Measuring Toolkit Impact](11-measuring-toolkit-impact.md)* | *Next: [13 -- Contributing to the Toolkit](13-contributing-to-the-toolkit.md)*
+*Previous: [11 -- PR Review Guide](11-pr-review-guide.md)* | *Next: [13 -- Troubleshooting](13-troubleshooting.md)*

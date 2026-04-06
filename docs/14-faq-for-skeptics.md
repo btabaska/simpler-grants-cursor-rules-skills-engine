@@ -102,8 +102,8 @@ how *this team* uses Flask and Next.js. Copilot generates a valid route handler.
 toolkit generates one with this project's decorator ordering, service layer
 delegation, `raise_flask_error()`, and `db_session` as the first parameter.
 
-The toolkit achieves this through 18 auto-activating domain rules, 15 code snippets,
-6 notepads, and 3 MCP servers -- project-specific context that does not exist in
+The toolkit achieves this through 24 auto-activating domain rules, 15 code snippets,
+6 notepads, 9 agents, 4 skills, and 3 MCP servers -- project-specific context that does not exist in
 generic tools. For the full architecture, see [How It Works](02-how-it-works.md).
 
 The comparison in [Capabilities and Limitations](12-capabilities-and-limitations.md)
@@ -286,7 +286,7 @@ technical details, see [How It Works](02-how-it-works.md).
 
 ## 14. "Can I use this without the MCP servers?"
 
-Yes. The 18 rules, 15 snippets, 6 notepads, 6 agents, and PR review skill are all
+Yes. The 24 rules, 15 snippets, 6 notepads, 9 agents, 4 skills, 12 slash commands, and 6 hook lifecycle events are all
 local text files requiring no connectivity. Remove the MCP servers (edit
 `.cursor/mcp.json`) and you lose live GitHub fetching and extended file access. You
 retain all project-specific conventions and workflow guidance.
@@ -410,5 +410,5 @@ Both Compound Engineering and Compound Knowledge are community plugins available
 
 ---
 
-*Previous: [13 -- Contributing to the Toolkit](13-contributing-to-the-toolkit.md)* |
+*Previous: [13 -- Troubleshooting](13-troubleshooting.md)* |
 *Next: [15 -- Glossary](15-glossary.md)*
