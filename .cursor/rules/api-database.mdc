@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on database models, migrations, or queries in api/src/db/
 globs: ["api/src/db/**/*.py"]
 ---

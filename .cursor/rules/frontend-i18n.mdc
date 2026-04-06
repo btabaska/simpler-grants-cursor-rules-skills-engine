@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: "When working on internationalization in frontend/src/i18n/"
 globs: ["frontend/src/i18n/**/*"]
 ---

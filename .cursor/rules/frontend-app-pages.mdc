@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on Next.js App Router pages and layouts in frontend/src/app/
 globs: ["frontend/src/app/**/*.tsx", "frontend/src/app/**/*.ts"]
 ---

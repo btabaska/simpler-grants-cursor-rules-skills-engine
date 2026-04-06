@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on API route handlers in api/src/api/
 globs: ["api/src/api/**/*.py"]
 ---

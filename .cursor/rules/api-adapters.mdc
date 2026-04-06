@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on external service adapters in api/src/adapters/
 globs: ["api/src/adapters/**/*.py"]
 ---

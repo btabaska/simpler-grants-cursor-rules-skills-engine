@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: "When writing or modifying API tests in api/tests/"
 globs: ["api/tests/**/*.py"]
 ---

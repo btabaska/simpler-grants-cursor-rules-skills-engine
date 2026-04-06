@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on OpenSearch integration in api/src/search/
 globs: ["api/src/search/**/*.py"]
 ---

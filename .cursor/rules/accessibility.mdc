@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: "Accessibility requirements for all frontend code. WCAG 2.1 AA and Section 508 compliance is legally mandated for this federal project."
 globs: ["frontend/src/**/*.tsx", "frontend/src/**/*.ts"]
 ---

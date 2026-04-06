@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When handling errors anywhere in the API codebase
 globs: ["api/src/**/*.py"]
 ---

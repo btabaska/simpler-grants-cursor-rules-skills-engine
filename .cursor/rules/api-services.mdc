@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on API service layer functions in api/src/services/
 globs: ["api/src/services/**/*.py"]
 ---

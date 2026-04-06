@@ -1,4 +1,5 @@
 ---
+alwaysApply: false
 description: When working on authentication and authorization in api/src/auth/
 globs: ["api/src/auth/**/*.py"]
 ---
