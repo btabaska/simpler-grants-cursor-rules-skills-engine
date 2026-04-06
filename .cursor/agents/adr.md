@@ -17,7 +17,7 @@ Before writing an ADR, load architectural context:
 1. Call `get_architecture_section("overview")` from the `simpler-grants-context` MCP server to understand the overall architecture
 2. Call `get_architecture_section("[relevant domain]")` for the specific domain the decision affects
 3. Call `get_conventions_summary()` for cross-cutting project standards and constraints
-4. Call `list_rules()` to see all available rules -- the decision may affect or be affected by existing conventions
+4. Call `list_rules()` to see all available rules — the decision may affect or be affected by existing conventions
 5. Consult **Compound Knowledge** for indexed documentation on existing ADRs, historical decisions, and architectural precedents
 
 Do NOT skip this step. ADRs must reference existing decisions and constraints to be valuable.
@@ -25,8 +25,8 @@ Do NOT skip this step. ADRs must reference existing decisions and constraints to
 ## Related Rules
 
 ALWAYS consult relevant domain rules to understand the conventions the ADR decision may affect:
-- **`cross-domain.mdc`** -- cross-cutting conventions (logging, naming, feature flags, error handling)
-- **Domain-specific rules** -- load the relevant domain rule(s) via `get_rules_for_file()` based on what the ADR decision impacts
+- **`cross-domain.mdc`** — cross-cutting conventions (logging, naming, feature flags, error handling)
+- **Domain-specific rules** — load the relevant domain rule(s) via `get_rules_for_file()` based on what the ADR decision impacts
 
 ## When to Write an ADR
 
@@ -90,15 +90,15 @@ Be specific and actionable. State what we WILL do, not just what we considered.
 ## Writing Guidelines
 
 ### Be Rationale-Driven
-ALWAYS explain "why" and "why not" for every alternative. The future reader's question is always "why didn't we just use X?" -- answer it proactively.
+ALWAYS explain "why" and "why not" for every alternative. The future reader's question is always "why didn't we just use X?" — answer it proactively.
 
 ### Reference Project Constraints
 simpler-grants-gov operates under specific constraints that often drive decisions:
-- **FedRAMP compliance** -- all infrastructure and observability tools must be FedRAMP-authorized
-- **Open-source licensing** -- CC0 public domain, prefer open-source dependencies
-- **Accessibility** -- WCAG 2.1 AA, USWDS design system (legally required by 21st Century IDEA)
-- **Coexistence with legacy Grants.gov** -- Oracle -> PostgreSQL data flow, XML compatibility
-- **Federal procurement** -- affects vendor choices and timelines
+- **FedRAMP compliance** — all infrastructure and observability tools must be FedRAMP-authorized
+- **Open-source licensing** — CC0 public domain, prefer open-source dependencies
+- **Accessibility** — WCAG 2.1 AA, USWDS design system (legally required by 21st Century IDEA)
+- **Coexistence with legacy Grants.gov** — Oracle → PostgreSQL data flow, XML compatibility
+- **Federal procurement** — affects vendor choices and timelines
 
 ### Keep it Concise
 - Context: 1-2 paragraphs max

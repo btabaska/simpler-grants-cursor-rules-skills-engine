@@ -31,6 +31,7 @@ Follow `architecture-tour.md` for a guided walkthrough:
 - Review key ADRs that explain architectural decisions
 
 ### Step 3: Toolkit Familiarization
+- Run `/tooling-health-check` to verify your setup is complete and all dependencies are installed
 - Explore available slash commands (`/debug`, `/refactor`, `/new-endpoint`, etc.)
 - Understand how rules auto-activate based on file paths
 - Try invoking an agent on a sample task

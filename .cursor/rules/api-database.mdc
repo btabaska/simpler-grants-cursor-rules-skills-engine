@@ -221,3 +221,5 @@ Invoke the following specialists (run in parallel where possible):
 - `data-integrity-guardian` — validate data safety, relationship correctness, foreign key integrity
 - `schema-drift-detector` — validate schema consistency between model, migration, and Marshmallow schemas
 - `kieran-python-reviewer` — Python-specific quality review for SQLAlchemy patterns
+
+<!-- Hook enforcement: convention-checker validates Mapped[T]/mapped_column(), no raw SQL, back_populates, schema='api' in migrations -->

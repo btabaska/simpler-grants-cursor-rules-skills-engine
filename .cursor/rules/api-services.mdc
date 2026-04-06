@@ -240,3 +240,5 @@ Invoke the following specialists (run in parallel where possible):
 - `architecture-strategist` — validate service boundaries and separation of concerns
 - `code-simplicity-reviewer` — check for unnecessary complexity in business logic
 - `kieran-python-reviewer` — Python-specific quality review
+
+<!-- Hook enforcement: convention-checker validates no business logic in routes, no db_session in handlers -->

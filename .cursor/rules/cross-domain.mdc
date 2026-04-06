@@ -166,3 +166,5 @@ Invoke the following specialists (run in parallel where possible):
 - `architecture-strategist` — validate cross-cutting consistency and architectural alignment
 - `pattern-recognition-specialist` — detect duplication and pattern violations across domains
 - `codebase-conventions-reviewer` — validate against all applicable domain rules
+
+<!-- Hook enforcement: convention-checker validates structured logging, no PII; import-validator validates import patterns -->

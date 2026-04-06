@@ -301,6 +301,10 @@ token ([Getting Started](03-getting-started.md)).
 
 ## Quick Diagnosis Checklist
 
+The fastest way to diagnose issues is to run the `/tooling-health-check` command in Cursor. It checks all runtime dependencies, directory structure, rule integrity, hooks, MCP servers, plugins, and repository health in one pass and provides specific fix commands for any failures.
+
+If you prefer manual checks:
+
 ```bash
 # Symlinks intact?
 ls -la ~/GitHub/simpler-grants-gov/.cursor

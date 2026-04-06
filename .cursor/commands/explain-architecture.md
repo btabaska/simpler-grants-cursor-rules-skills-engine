@@ -16,3 +16,7 @@ Either:
 3. Explains the file's responsibilities, what calls it, and what it calls
 4. Shows how it relates to domain rules and conventions
 5. Identifies the applicable rules and key ALWAYS/NEVER directives
+
+## Tip
+
+If architecture context isn't loading or MCP tools return errors, run `/tooling-health-check` to verify MCP servers are connected and the toolkit is properly configured.

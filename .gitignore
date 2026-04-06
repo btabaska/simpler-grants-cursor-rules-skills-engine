@@ -6,3 +6,8 @@ __pycache__/
 node_modules/
 mcp-server/dist/
 .DS_Store
+
+# Cursor hooks
+.cursor/hooks/logs/
+.cursor/hooks/node_modules/
+.cursor/hooks/dist/

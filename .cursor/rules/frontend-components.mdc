@@ -209,3 +209,5 @@ Invoke the following specialists (run in parallel where possible):
 - `architecture-strategist` — validate component boundaries and RSC/client split
 - `code-simplicity-reviewer` — check for unnecessary complexity in component logic
 - `kieran-typescript-reviewer` — TypeScript-specific quality review
+
+<!-- Hook enforcement: convention-checker validates no inline styles, server-first rendering, no barrel files; accessibility-checker validates a11y patterns -->

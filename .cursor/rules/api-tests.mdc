@@ -180,3 +180,5 @@ Invoke the following specialists (run in parallel where possible):
 - `performance-oracle` — validate test efficiency (unnecessary `.create()`, fixture scoping, DB overhead)
 - `codebase-conventions-reviewer` — validate test structure and naming conventions
 - `kieran-python-reviewer` — Python-specific quality review for test patterns
+
+<!-- Hook enforcement: test-pattern-checker validates testing conventions -->

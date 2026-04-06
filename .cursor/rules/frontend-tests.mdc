@@ -247,3 +247,5 @@ Invoke the following specialists (run in parallel where possible):
 - `performance-oracle` — validate test efficiency (mock setup cost, unnecessary renders)
 - `codebase-conventions-reviewer` — validate mock patterns and test structure
 - `kieran-typescript-reviewer` — TypeScript-specific quality review for test code
+
+<!-- Hook enforcement: test-pattern-checker validates testing conventions -->

@@ -1,20 +1,40 @@
 {
   "version": 1,
   "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": "bun run .cursor/hooks/dispatchers/before-shell.ts",
+        "description": "Security guardrails: block dangerous commands, protect sensitive files, audit trail"
+      }
+    ],
+    "beforeMCPExecution": [
+      {
+        "command": "bun run .cursor/hooks/dispatchers/before-mcp.ts",
+        "description": "Scope guard: block out-of-project filesystem access via MCP tools, audit trail"
+      }
+    ],
+    "beforeReadFile": [
+      {
+        "command": "bun run .cursor/hooks/dispatchers/before-read-file.ts",
+        "description": "Secret protection: block production secrets, redact API keys, advisory messages for sensitive files"
+      }
+    ],
+    "beforeSubmitPrompt": [
+      {
+        "command": "bun run .cursor/hooks/dispatchers/before-submit-prompt.ts",
+        "description": "Prompt audit: log prompt metadata for session tracking"
+      }
+    ],
     "afterFileEdit": [
       {
-        "command": ".cursor/hooks/format-check.sh",
-        "description": "Run formatter and linter on edited files"
-      },
-      {
-        "command": ".cursor/hooks/convention-check.sh",
-        "description": "Quick convention compliance check on edited files"
+        "command": "bun run .cursor/hooks/dispatchers/after-file-edit.ts",
+        "description": "Quality enforcement: auto-format, convention checks, import validation, test patterns, a11y, TODO scanning"
       }
     ],
     "stop": [
       {
-        "command": ".cursor/hooks/summary-snapshot.sh",
-        "description": "Generate a summary of all changes made during this agent session"
+        "command": "bun run .cursor/hooks/dispatchers/on-stop.ts",
+        "description": "Session wrap-up: git summary, test runner, coverage reporter, audit log finalization"
       }
     ]
   }

@@ -8,7 +8,7 @@ This project uses Cursor's full primitive system for AI-assisted development.
 - **`.cursor/agents/`** — Specialist subagents for complex multi-step tasks. Discovered automatically. Start with the orchestrator if unsure which agent to use.
 - **`.cursor/commands/`** — Slash commands (`/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`). Quick intake forms that route to agents and skills.
 - **`.cursor/skills/`** — Multi-step workflows with supporting files. PR review, quality gates, onboarding, flag cleanup.
-- **`.cursor/hooks.json`** — Automatic lifecycle hooks. Format-on-save, convention checks, session summaries.
+- **`.cursor/hooks.json`** — Automatic lifecycle hooks powered by Bun/TypeScript dispatchers. 19 handlers across 6 events enforce security guardrails, convention compliance, and audit logging.
 - **`.cursor/mcp.json`** — MCP servers for project context, GitHub, and filesystem access.
 
 ## Key Global Conventions (always apply)
@@ -34,6 +34,7 @@ This project uses Cursor's full primitive system for AI-assisted development.
 - `/review-pr` — run a full code review
 - `/check-conventions` — check a file against project rules
 - `/explain-architecture` — understand how a file fits in the project
+- `/tooling-health-check` — verify toolkit setup and diagnose configuration issues
 
 ## MCP Tools
 
@@ -46,7 +47,23 @@ This project uses Cursor's full primitive system for AI-assisted development.
 - `list_commands()` — list available slash commands
 - `list_skills()` — list available skills
 
+## Hooks (Deterministic Enforcement)
+
+Hooks run automatically on every Cursor lifecycle event. They enforce conventions that must ALWAYS apply — no directive fatigue, no forgotten checks.
+
+| Event | Dispatcher | Handlers |
+|---|---|---|
+| `beforeShellExecution` | `before-shell.ts` | dangerous-command-guard, environment-protection, command-logger |
+| `beforeMCPExecution` | `before-mcp.ts` | mcp-scope-guard, mcp-tool-logger |
+| `beforeReadFile` | `before-read-file.ts` | secret-redactor, sensitive-file-guard |
+| `beforeSubmitPrompt` | `before-submit-prompt.ts` | prompt-enrichment-logger |
+| `afterFileEdit` | `after-file-edit.ts` | auto-formatter, convention-checker, import-validator, test-pattern-checker, error-pattern-checker, accessibility-checker, todo-scanner |
+| `stop` | `on-stop.ts` | session-summary, test-runner, coverage-reporter, audit-log-finalizer |
+
+Hooks require [Bun](https://bun.sh) runtime. Source: `.cursor/hooks/`. Logs: `.cursor/hooks/logs/`.
+
 ## Architecture
 
 For project architecture and philosophy, see `documentation/architecture-guide.md`.
 For domain-specific conventions with rationale, see `documentation/rules/*.md`.
+For hook system documentation, see `docs/hooks-reference.md`.

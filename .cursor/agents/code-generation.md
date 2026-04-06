@@ -30,14 +30,14 @@ Route your code generation through the correct rules based on what you're buildi
 | API route handler | `api-routes` + `api-error-handling` + `cross-domain` |
 | Service function | `api-services` + `api-error-handling` + `cross-domain` |
 | Database model | `api-database` + `cross-domain` |
-| Database migration | `api-database` (see `migration agent`) |
+| Database migration | `api-database` (see `agent-migration`) |
 | Marshmallow schema | `api-validation` + `api-error-handling` |
 | Auth logic | `api-auth` + `api-routes` |
 | Form schema | `api-form-schema` + `forms-vertical` |
 | React component | `frontend-components` + `cross-domain` |
 | Custom hook | `frontend-hooks` |
 | API integration | `frontend-services` |
-| Translation | `frontend-i18n` (see `i18n agent`) |
+| Translation | `frontend-i18n` (see `agent-i18n`) |
 | Frontend test | `frontend-tests` |
 | API test | `api-tests` |
 | Terraform resource | `infra` |
@@ -49,13 +49,13 @@ Route your code generation through the correct rules based on what you're buildi
 - snake_case for all identifiers
 - Boolean fields: `is_*`, `has_*`, `can_*`, `was_*` prefixes
 - Structured logging: static message string + `extra={"key": value}` (flat, snake_case keys)
-- NEVER log PII (emails, names) -- use UUIDs instead
+- NEVER log PII (emails, names) — use UUIDs instead
 - Errors: `raise_flask_error(status_code, message, validation_issues=[...])`
 - Log levels: `info` for 4xx, `warning` for operational concerns, `error`/`exception` for system failures
 
 ### TypeScript (Frontend)
 - camelCase for variables/functions, PascalCase for components/types
-- React Server Components by default -- add `"use client"` only when client interactivity is needed
+- React Server Components by default — add `"use client"` only when client interactivity is needed
 - USWDS components from `@trussworks/react-uswds` preferred
 - Domain-based directory organization (not by component type)
 - NO barrel files (`index.ts` re-exports)
@@ -65,7 +65,7 @@ Route your code generation through the correct rules based on what you're buildi
 - Tests ship in the same PR as the code
 - API: factory `.build()` for unit tests, `.create()` for integration tests (requires `enable_factory_create` fixture)
 - Frontend: jest-axe accessibility scan in every component test
-- Standalone `def test_*()` / `describe()` blocks -- no class wrappers unless sharing fixtures
+- Standalone `def test_*()` / `describe()` blocks — no class wrappers unless sharing fixtures
 
 ## Quality Gate Pipeline
 
@@ -76,13 +76,13 @@ Invoke `codebase-conventions-reviewer` to validate all generated code against pr
 - Check: naming conventions, file placement, import patterns, code structure per the domain dispatch table above
 - If violations found: fix them before proceeding
 
-### Gate 2: Domain-Specific Specialist (mandatory -- dispatch by domain)
+### Gate 2: Domain-Specific Specialist (mandatory — dispatch by domain)
 Based on what was generated, invoke the appropriate specialist:
-- **Route/service/architectural code** -> `architecture-strategist` (layering, boundaries, separation of concerns)
-- **Auth-related code** -> `security-sentinel` (auth correctness, token handling, permission checks)
-- **Database models/queries** -> `data-integrity-guardian` (data safety, relationship correctness, query patterns)
-- **Schema/validation code** -> `schema-drift-detector` (schema consistency across API layers)
-- **Infrastructure code** -> `deployment-verification-agent` (deployment safety, security group rules)
+- **Route/service/architectural code** → `architecture-strategist` (layering, boundaries, separation of concerns)
+- **Auth-related code** → `security-sentinel` (auth correctness, token handling, permission checks)
+- **Database models/queries** → `data-integrity-guardian` (data safety, relationship correctness, query patterns)
+- **Schema/validation code** → `schema-drift-detector` (schema consistency across API layers)
+- **Infrastructure code** → `deployment-verification-agent` (deployment safety, security group rules)
 - If issues found: fix before proceeding
 
 ### Gate 3: Language Quality (mandatory)

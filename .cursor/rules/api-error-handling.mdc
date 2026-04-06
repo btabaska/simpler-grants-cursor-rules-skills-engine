@@ -228,3 +228,5 @@ Invoke the following specialists (run in parallel where possible):
 - `architecture-strategist` — validate error contract consistency across API layers
 - `security-sentinel` — validate no sensitive information leakage in error responses
 - `kieran-python-reviewer` — Python-specific quality review
+
+<!-- Hook enforcement: convention-checker validates raise_flask_error() usage, error-pattern-checker validates error handling contract -->

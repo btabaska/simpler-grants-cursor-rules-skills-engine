@@ -164,3 +164,5 @@ Invoke the following specialists (run in parallel where possible):
 - `accessibility-auditor` — deep WCAG 2.1 AA / Section 508 compliance review
 - `codebase-conventions-reviewer` — validate against project conventions
 - `kieran-typescript-reviewer` — TypeScript-specific quality review
+
+<!-- Hook enforcement: accessibility-checker validates onClick handlers, alt text, tabIndex, label associations -->
