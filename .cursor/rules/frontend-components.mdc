@@ -189,7 +189,10 @@ When working on React components, also consult these related rules:
 - **`frontend-i18n.mdc`** — `useTranslations` / `getTranslations`, centralized translation file
 - **`frontend-services.mdc`** — `requesterForEndpoint()`, server-side fetching patterns
 - **`frontend-tests.mdc`** — jest-axe accessibility, mock patterns, async server component testing
+- **`frontend-app-pages.mdc`** — page-level component composition, metadata, layout hierarchy
+- **`accessibility.mdc`** — WCAG 2.1 AA / Section 508 compliance, ARIA patterns, focus management, jest-axe requirements
 - **`cross-domain.mdc`** — accessibility testing requirement, feature flags
+- **Refactor agent** (`.cursor/agents/refactor.md`) — invoke with `/refactor` for component extraction, splitting oversized components, or consolidating duplicated component patterns
 
 ## Specialist Validation
 

@@ -180,6 +180,7 @@ When working on custom hooks, also consult these related rules:
 - **`frontend-services.mdc`** — `useClientFetch`, server-side fetching patterns, auth token handling
 - **`frontend-components.mdc`** — how components consume hooks, context guard pattern
 - **`cross-domain.mdc`** — boolean naming, general conventions
+- **Refactor agent** (`.cursor/agents/refactor.md`) — invoke with `/refactor` for hook extraction, splitting complex hooks, or consolidating duplicated hook logic
 
 ## Specialist Validation
 

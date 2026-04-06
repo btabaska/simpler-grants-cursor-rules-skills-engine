@@ -141,9 +141,15 @@ When generating code that spans multiple domains or touches cross-cutting concer
 ## Related Rules
 
 This rule applies to ALL files. When it activates alongside a domain-specific rule, both sets of directives apply. The domain-specific rule takes precedence for domain-specific patterns; this rule governs cross-cutting concerns:
-- **`api-routes.mdc`**, **`api-services.mdc`**, **`api-database.mdc`** — Python API domain rules
-- **`frontend-components.mdc`**, **`frontend-hooks.mdc`**, **`frontend-services.mdc`** — TypeScript frontend domain rules
+- **`api-routes.mdc`**, **`api-services.mdc`**, **`api-database.mdc`**, **`api-tasks.mdc`**, **`api-adapters.mdc`**, **`api-workflow.mdc`**, **`api-search.mdc`** — Python API domain rules
+- **`frontend-components.mdc`**, **`frontend-hooks.mdc`**, **`frontend-services.mdc`**, **`frontend-app-pages.mdc`** — TypeScript frontend domain rules
+- **`frontend-tests.mdc`**, **`frontend-e2e-tests.mdc`** — frontend testing rules
+- **`accessibility.mdc`** — WCAG 2.1 AA / Section 508 compliance (legally mandated, activates on all frontend files)
 - **`infra.mdc`**, **`ci-cd.mdc`** — infrastructure and CI/CD domain rules
+
+**Debugging:** When tracing errors across domain boundaries, invoke the debugging agent (or use `/debug`) — it loads context from all relevant domains and traces the full error path.
+
+**Refactoring:** When restructuring code across multiple domains or consolidating duplicated patterns, invoke the refactor agent (or use `/refactor`) — it maps the full blast radius, executes across all affected files, and validates against all applicable conventions.
 
 ## Specialist Validation
 

@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": ".cursor/hooks/format-check.sh",
+        "description": "Run formatter and linter on edited files"
+      },
+      {
+        "command": ".cursor/hooks/convention-check.sh",
+        "description": "Quick convention compliance check on edited files"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/summary-snapshot.sh",
+        "description": "Generate a summary of all changes made during this agent session"
+      }
+    ]
+  }
+}

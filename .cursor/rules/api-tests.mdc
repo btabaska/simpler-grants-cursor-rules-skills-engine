@@ -163,6 +163,8 @@ When writing API tests, also consult these related rules:
 - **`api-error-handling.mdc`** — understand error patterns for error path tests
 - **`cross-domain.mdc`** — factory `.build()` vs `.create()` decision, structured logging assertions
 
+**Debugging:** Invoke the debugging agent (or use `/debug`) to diagnose failing tests — it will trace through the code under test and identify root causes.
+
 ## Specialist Validation
 
 When generating or significantly modifying API tests:

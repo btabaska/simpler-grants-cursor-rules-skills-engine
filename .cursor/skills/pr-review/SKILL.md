@@ -1,8 +1,14 @@
 ---
-description: "Comprehensive PR review for simpler-grants-gov. Invoke manually when reviewing a pull request. Combines codebase-specific rules with specialist review passes."
-globs: []
-alwaysApply: false
+name: PR Review
+description: "Comprehensive code review workflow for simpler-grants-gov. Performs multi-domain review using the project's dispatch table, 8-section checklist, Compound Engineering specialists, and severity classification. Produces reviews in the project's established voice and style."
+model: inherit
 ---
+
+## When to Use
+
+Invoke this skill when reviewing a pull request on simpler-grants-gov. Works with PR numbers, branch names, file lists, or working tree changes.
+
+## Step-by-Step Instructions
 
 # simpler-grants-gov PR Review
 
@@ -44,13 +50,20 @@ Before writing any comments, identify which codebase rule files apply to the cha
 | `api/src/auth/**/*.py` | `api-auth.mdc` |
 | `api/src/validation/**/*.py` | `api-validation.mdc` |
 | `api/src/form_schema/**/*.py` | `api-form-schema.mdc` |
+| `api/src/task/**/*.py` | `api-tasks.mdc` |
+| `api/src/adapters/**/*.py` | `api-adapters.mdc` |
+| `api/src/workflow/**/*.py` | `api-workflow.mdc` |
+| `api/src/search/**/*.py` | `api-search.mdc` |
 | `api/tests/**/*.py` | `api-tests.mdc` |
 | `api/src/**/*.py` (any) | `api-error-handling.mdc` |
+| `frontend/src/app/**/*` | `frontend-app-pages.mdc` |
 | `frontend/src/components/**/*` | `frontend-components.mdc` |
 | `frontend/src/hooks/**/*` | `frontend-hooks.mdc` |
 | `frontend/src/services/**/*` | `frontend-services.mdc` |
 | `frontend/src/i18n/**/*` | `frontend-i18n.mdc` |
+| `frontend/tests/e2e/**/*` | `frontend-e2e-tests.mdc` |
 | `frontend/tests/**/*`, `frontend/e2e/**/*` | `frontend-tests.mdc` |
+| `frontend/src/**/*.tsx`, `frontend/src/**/*.ts` | `accessibility.mdc` |
 | `infra/**/*.tf` | `infra.mdc` |
 | `.github/**/*.yml` | `ci-cd.mdc` |
 | `**/form*/**/*`, `api/src/form_schema/**/*` | `forms-vertical.mdc` |
@@ -96,6 +109,7 @@ Use parallel subagents where possible for speed. Keep total calls focused on cha
 In addition to the core baseline, auto-run these specialists when relevant:
 
 - Frontend async/UI lifecycle changes (`*.tsx`, `*.ts`, controllers, async UI logic): `julik-frontend-races-reviewer`
+- Frontend component / page / accessibility changes (`*.tsx`, `*.ts`, components, pages): `accessibility-auditor` — deep WCAG 2.1 AA / Section 508 compliance review (ARIA patterns, focus management, keyboard nav, color contrast, screen reader support, heading hierarchy, jest-axe test presence)
 - DB migrations / schema / data transforms (`alembic`, migrations, model changes):
   - `data-integrity-guardian`
   - `data-migration-expert`
@@ -138,13 +152,17 @@ Use specialists to strengthen (not replace) the checklist:
 - Potential Bugs & Edge Cases: language reviewer, `security-sentinel`, `julik-frontend-races-reviewer`
 - Unit Testing Opportunities: language reviewer + risk signal from all specialists
 - Potential Regressions: `performance-oracle`, `architecture-strategist`, migration specialists
-- Accessibility: your direct a11y review (specialists may support but do not replace this)
+- Accessibility: `accessibility-auditor` + your direct a11y review (enforce `accessibility.mdc` directives)
 - USWDS Usage: your direct USWDS review (specialists may support consistency checks)
 - Code Reuse & DRY: `pattern-recognition-specialist`, `code-simplicity-reviewer`
 - Additional Quality Checks: specialist-specific where relevant (security, migrations, architecture)
 - Codebase Convention Compliance: `codebase-conventions-reviewer` (always runs, highest priority)
 
 ---
+
+**Debugging aid:** If you encounter confusing code during review and need to understand the execution path, invoke `@agent-debugging` to trace through the codebase and explain the behavior.
+
+**Refactoring aid:** If the review reveals code that would benefit from structural improvement — duplicated patterns, misplaced logic, oversized files — invoke `@agent-refactor` to plan and execute the refactor safely across all affected files.
 
 ## Inline Comment Format
 

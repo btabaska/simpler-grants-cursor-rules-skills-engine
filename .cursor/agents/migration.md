@@ -1,7 +1,9 @@
 ---
+name: Migration Agent
 description: "Agent: Generate Alembic database migrations for simpler-grants-gov. Invoke manually when adding or modifying database tables."
-globs: []
-alwaysApply: false
+model: inherit
+readonly: false
+is_background: false
 ---
 
 # Database Migration Agent
@@ -17,22 +19,22 @@ Before generating a migration, load architectural context:
 3. Call `get_conventions_summary()` for cross-cutting project standards
 4. Consult **Compound Knowledge** for indexed documentation on migration history, schema evolution patterns, and ADRs related to database decisions
 
-Do NOT skip this step. Migrations are high-risk operations — context prevents data loss.
+Do NOT skip this step. Migrations are high-risk operations -- context prevents data loss.
 
 ## Related Rules
 
 ALWAYS consult these related rules during migration generation:
-- **`api-database.mdc`** — `Mapped[T]` syntax, UUID PKs, table naming, lookup four-layer pattern, relationship conventions
-- **`api-services.mdc`** — service layer query patterns that the migration must support
-- **`api-error-handling.mdc`** — error patterns for migration-related service changes
-- **`cross-domain.mdc`** — boolean naming (`is_*`, `has_*`), structured logging
+- **`api-database.mdc`** -- `Mapped[T]` syntax, UUID PKs, table naming, lookup four-layer pattern, relationship conventions
+- **`api-services.mdc`** -- service layer query patterns that the migration must support
+- **`api-error-handling.mdc`** -- error patterns for migration-related service changes
+- **`cross-domain.mdc`** -- boolean naming (`is_*`, `has_*`), structured logging
 
 ## Before You Start
 
 Ask the user for:
-1. **What's changing** — new table, new column, modify column, add index, etc.
-2. **Model file** — which model in `api/src/db/models/` is affected
-3. **Is this reversible** — can `downgrade()` safely undo it?
+1. **What's changing** -- new table, new column, modify column, add index, etc.
+2. **Model file** -- which model in `api/src/db/models/` is affected
+3. **Is this reversible** -- can `downgrade()` safely undo it?
 
 ## Migration File Conventions
 
@@ -99,7 +101,7 @@ my_status: Mapped[MyStatus] = mapped_column(
 )
 ```
 
-Note: New enum values do NOT require a migration — they're seeded by the lookup config.
+Note: New enum values do NOT require a migration -- they're seeded by the lookup config.
 
 ### Soft Deletes
 For user-facing deletions, use soft delete pattern:

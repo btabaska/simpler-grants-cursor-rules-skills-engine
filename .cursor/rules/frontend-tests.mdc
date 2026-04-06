@@ -225,8 +225,12 @@ When writing frontend tests, also consult these related rules:
 - **`frontend-components.mdc`** — component conventions being tested (RSC default, USWDS, context patterns)
 - **`frontend-hooks.mdc`** — hook patterns for hook tests (`useClientFetch`, `useSearchParamUpdater`)
 - **`frontend-i18n.mdc`** — i18n patterns for testing translations
+- **`frontend-e2e-tests.mdc`** — Playwright E2E test patterns, tagging system, sharding, page object utilities
+- **`accessibility.mdc`** — WCAG 2.1 AA / Section 508 compliance, jest-axe test requirements
 - **`api-tests.mdc`** — shared testing philosophy (factory patterns, test structure)
 - **`cross-domain.mdc`** — accessibility testing requirement (`jest-axe`)
+
+**Debugging:** Invoke the debugging agent (or use `/debug`) to diagnose failing tests — it will trace through the code under test and identify root causes.
 
 ## Specialist Validation
 

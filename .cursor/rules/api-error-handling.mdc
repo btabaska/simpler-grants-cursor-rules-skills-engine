@@ -211,6 +211,8 @@ When working on error handling, also consult these related rules:
 - **`frontend-services.mdc`** — how the frontend consumes API errors (`ApiRequestError`, `parseErrorStatus()`)
 - **`cross-domain.mdc`** — structured logging for errors, `logger.info()` for 4xx
 
+**Debugging:** Invoke the debugging agent (or use `/debug`) to trace error propagation through the error handling stack when debugging unexpected error responses.
+
 ## Specialist Validation
 
 When generating or significantly modifying error handling code:

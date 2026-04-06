@@ -1,27 +1,52 @@
 # simpler-grants-gov — Cursor Configuration
 
-This project uses scoped Cursor rules for domain-specific conventions.
+This project uses Cursor's full primitive system for AI-assisted development.
 
-## Rules
+## Directory Structure
 
-All coding conventions are enforced via `.cursor/rules/*.mdc` files. These rules
-activate automatically based on the file paths you're editing.
+- **`.cursor/rules/`** — Passive coding conventions. Auto-activate based on file path globs. Define ALWAYS/NEVER/MUST directives for each domain.
+- **`.cursor/agents/`** — Specialist subagents for complex multi-step tasks. Discovered automatically. Start with the orchestrator if unsure which agent to use.
+- **`.cursor/commands/`** — Slash commands (`/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`). Quick intake forms that route to agents and skills.
+- **`.cursor/skills/`** — Multi-step workflows with supporting files. PR review, quality gates, onboarding, flag cleanup.
+- **`.cursor/hooks.json`** — Automatic lifecycle hooks. Format-on-save, convention checks, session summaries.
+- **`.cursor/mcp.json`** — MCP servers for project context, GitHub, and filesystem access.
 
-## PR Reviews
-
-For pull request reviews, invoke the `pr-review` rule manually. It combines
-codebase convention enforcement with a comprehensive review checklist.
-
-## Architecture
-
-For project architecture and philosophy, see `documentation/architecture-guide.md`.
-For domain-specific conventions with rationale, see `documentation/rules/*.md`.
-
-## Key Conventions (always apply)
+## Key Global Conventions (always apply)
 
 - Structured logging: static messages + flat snake_case `extra={}` keys. No PII in logs.
 - Error handling: ALWAYS use `raise_flask_error()` with `ValidationErrorDetail` in the API.
 - Testing: tests ship with code in the same PR. Use factory `.build()` over `.create()`.
 - Frontend: server-first rendering. USWDS components preferred. No barrel files.
+- Feature flags: flags live in service layer. Use the flag-cleanup skill when removing.
 - Naming: boolean fields use `is_*` / `has_*`. camelCase in TypeScript, snake_case in Python.
 - PRs: title format `[Issue N] Description`. Trunk-based development to `main`.
+
+## Quick Start
+
+- `/debug` — investigate a bug
+- `/refactor` — restructure code safely
+- `/new-endpoint` — scaffold a new API endpoint
+- `/generate` — generate code following project patterns
+- `/test` — generate tests for existing code
+- `/migration` — generate a database migration
+- `/i18n` — add or modify translations
+- `/adr` — write an Architecture Decision Record
+- `/review-pr` — run a full code review
+- `/check-conventions` — check a file against project rules
+- `/explain-architecture` — understand how a file fits in the project
+
+## MCP Tools
+
+- `get_architecture_section(section)` — load architecture documentation
+- `get_rules_for_file(file_path)` — get applicable rules for a file
+- `get_rule_detail(rule_name)` — get full rule content
+- `get_conventions_summary()` — get cross-cutting conventions
+- `list_rules()` — list all available rules
+- `list_agents()` — list available subagents
+- `list_commands()` — list available slash commands
+- `list_skills()` — list available skills
+
+## Architecture
+
+For project architecture and philosophy, see `documentation/architecture-guide.md`.
+For domain-specific conventions with rationale, see `documentation/rules/*.md`.

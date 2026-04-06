@@ -1,7 +1,9 @@
 ---
+name: New Endpoint Agent
 description: "Agent: Generate a complete new API endpoint. Invoke manually when adding a new endpoint to simpler-grants-gov."
-globs: []
-alwaysApply: false
+model: inherit
+readonly: false
+is_background: false
 ---
 
 # New API Endpoint Agent
@@ -23,14 +25,14 @@ Do NOT skip this step. Context-informed generation produces dramatically better 
 ## Related Rules
 
 This agent orchestrates across multiple domain rules. ALWAYS consult these during generation:
-- **`api-routes.mdc`** — decorator stack order, thin handlers, auth patterns, response handling
-- **`api-services.mdc`** — `db_session` first param, service file organization, query patterns
-- **`api-error-handling.mdc`** — `raise_flask_error()`, `ValidationErrorDetail`, status code conventions
-- **`api-auth.mdc`** — multi-auth composition, user retrieval, security scheme registration
-- **`api-validation.mdc`** — `ValidationErrorType` enum, raise vs return pattern
-- **`api-database.mdc`** — `Mapped[T]` syntax, UUID PKs, relationship conventions (if new model)
-- **`api-tests.mdc`** — factory patterns, route test structure, error testing
-- **`cross-domain.mdc`** — structured logging, boolean naming, feature flags
+- **`api-routes.mdc`** -- decorator stack order, thin handlers, auth patterns, response handling
+- **`api-services.mdc`** -- `db_session` first param, service file organization, query patterns
+- **`api-error-handling.mdc`** -- `raise_flask_error()`, `ValidationErrorDetail`, status code conventions
+- **`api-auth.mdc`** -- multi-auth composition, user retrieval, security scheme registration
+- **`api-validation.mdc`** -- `ValidationErrorType` enum, raise vs return pattern
+- **`api-database.mdc`** -- `Mapped[T]` syntax, UUID PKs, relationship conventions (if new model)
+- **`api-tests.mdc`** -- factory patterns, route test structure, error testing
+- **`cross-domain.mdc`** -- structured logging, boolean naming, feature flags
 
 ## Before You Start
 
@@ -71,7 +73,7 @@ ALWAYS apply decorators in this exact order:
 5. Auth decorator (e.g., `@jwt_or_api_user_key_multi_auth.login_required`)
 6. `@flask_db.with_db_session()`
 
-ALWAYS keep route handlers thin — call service, return response:
+ALWAYS keep route handlers thin -- call service, return response:
 
 ```python
 @<domain>_blueprint.get("/<uuid:<domain>_id>")

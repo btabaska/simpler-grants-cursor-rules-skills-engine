@@ -203,6 +203,7 @@ When generating significant database code (new model, new migration, complex que
 When working on database models and migrations, also consult these related rules:
 - **`api-services.mdc`** — service layer query patterns, `scalar_one_or_none()`, relationship loading
 - **`api-error-handling.mdc`** — error patterns for database-related failures
+- **`api-search.mdc`** — OpenSearch index models that mirror database models
 - **`cross-domain.mdc`** — boolean naming (`is_*`, `has_*`), structured logging, factory patterns
 
 ## Specialist Validation

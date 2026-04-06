@@ -220,7 +220,10 @@ When working on API services, also consult these related rules:
 - **`api-error-handling.mdc`** — `raise_flask_error()`, validation order, error logging
 - **`api-auth.mdc`** — `can_access()`/`verify_access()` authorization patterns
 - **`api-validation.mdc`** — `ValidationErrorType`, raise vs return pattern for validation
+- **`api-tasks.mdc`** — background task patterns that services may trigger
+- **`api-workflow.mdc`** — workflow orchestration that services participate in
 - **`cross-domain.mdc`** — structured logging, boolean naming, factory patterns
+- **Refactor agent** (`.cursor/agents/refactor.md`) — invoke with `/refactor` for service layer restructuring (extract, split, move, consolidate service functions)
 
 ## Specialist Validation
 

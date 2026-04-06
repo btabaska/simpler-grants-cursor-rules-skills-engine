@@ -1,7 +1,9 @@
 ---
+name: Test Generation Agent
 description: "Agent: Generate tests following simpler-grants-gov patterns. Invoke manually when writing tests for API or frontend code."
-globs: []
-alwaysApply: false
+model: inherit
+readonly: false
+is_background: false
 ---
 
 # Test Generation Agent
@@ -22,12 +24,12 @@ Do NOT skip this step. Tests informed by convention context catch more real issu
 ## Related Rules
 
 ALWAYS consult these related rules during test generation:
-- **`api-tests.mdc`** — factory `.build()` vs `.create()`, `enable_factory_create` fixture, route/service test structure, error testing
-- **`frontend-tests.mdc`** — jest-axe, mock patterns, async server component testing, Playwright E2E
-- **`api-routes.mdc`** — understand decorator stack to write correct route tests
-- **`api-services.mdc`** — understand service signatures to write correct service tests
-- **`api-error-handling.mdc`** — understand error patterns to test error paths correctly
-- **`cross-domain.mdc`** — factory pattern, structured logging assertions
+- **`api-tests.mdc`** -- factory `.build()` vs `.create()`, `enable_factory_create` fixture, route/service test structure, error testing
+- **`frontend-tests.mdc`** -- jest-axe, mock patterns, async server component testing, Playwright E2E
+- **`api-routes.mdc`** -- understand decorator stack to write correct route tests
+- **`api-services.mdc`** -- understand service signatures to write correct service tests
+- **`api-error-handling.mdc`** -- understand error patterns to test error paths correctly
+- **`cross-domain.mdc`** -- factory pattern, structured logging assertions
 
 ## API Tests (pytest)
 
@@ -35,11 +37,11 @@ ALWAYS consult these related rules during test generation:
 
 ```
 Does the test need data in the database?
-├── YES → Use Factory.create()
-│         MUST request `enable_factory_create` fixture
-│         NEVER call db_session.commit() after create
-│         Used for: route tests, integration tests
-└── NO  → Use Factory.build()
+|-- YES -> Use Factory.create()
+|         MUST request `enable_factory_create` fixture
+|         NEVER call db_session.commit() after create
+|         Used for: route tests, integration tests
++-- NO  -> Use Factory.build()
           No fixture needed, no database hit
           Used for: service unit tests, validation tests, schema tests
 ```
@@ -85,7 +87,7 @@ def test_<service_function>_not_found(db_session):
 
 - ALWAYS use `test_<function_or_endpoint>_<scenario>` format
 - ALWAYS write as standalone functions, NEVER in classes (unless sharing `scope="class"` fixtures)
-- NEVER hardcode values the factory generates — reference the factory object
+- NEVER hardcode values the factory generates -- reference the factory object
 
 ### Error Tests
 
@@ -145,14 +147,14 @@ describe("useMyHook", () => {
 - Mock API calls with `jest.mock("src/services/fetch")`
 - Mock `next/navigation` for router-dependent components
 - Mock `next-intl` for i18n-dependent components
-- NEVER mock implementation details — test behavior
+- NEVER mock implementation details -- test behavior
 
 ### E2E Tests (Playwright)
 
 ```typescript
 import { test, expect } from "@playwright/test";
 
-test("<feature> — <scenario>", async ({ page }) => {
+test("<feature> -- <scenario>", async ({ page }) => {
   await page.goto("/path");
   await expect(page.getByRole("heading", { name: "Title" })).toBeVisible();
 });
