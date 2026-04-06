@@ -4,7 +4,7 @@
 
 ## What Are Agents?
 
-Agents are rule files with empty glob patterns -- they don't activate automatically. You invoke them by name when you need a structured, multi-step workflow. They're like having a senior engineer's playbook for specific tasks. Unlike auto-activating rules that fire whenever you touch a matching file, agents sit idle until you explicitly call on them. This gives you full control over when their conventions and scaffolding logic kick in.
+Agents are structured, multi-step workflows that live in `.cursor/agents/` as proper Cursor subagents (not rule files with empty globs as in the earlier flat `.mdc` layout). You invoke them by name when you need a structured, multi-step workflow. They're like having a senior engineer's playbook for specific tasks. Unlike auto-activating rules that fire whenever you touch a matching file, agents sit idle until you explicitly call on them. This gives you full control over when their conventions and scaffolding logic kick in.
 
 ### Quality Gate Pipelines (Phase 7 Enhancement)
 
@@ -31,18 +31,19 @@ These features require the Compound Engineering and Compound Knowledge plugins �
 
 ## How to Invoke an Agent
 
-There are two methods:
+Agents are discovered automatically by Cursor as subagents. There are three methods for invoking them:
 
-1. **In Chat (Cmd+L):** Type `@agent-name` followed by your request. The agent's rules load into context and guide the AI through the workflow.
-2. **In Composer (Cmd+I):** Same syntax, but Composer can create and edit multiple files in a single pass, which is ideal for agents that produce several artifacts.
+1. **Slash commands (preferred):** Use the corresponding slash command -- `/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`. This is the fastest invocation method.
+2. **In Chat (Cmd+L):** Type `@agent-name` followed by your request. The agent's rules load into context and guide the AI through the workflow. This still works as before.
+3. **In Composer (Cmd+I):** Same syntax as Chat, but Composer can create and edit multiple files in a single pass, which is ideal for agents that produce several artifacts.
 
-Both methods work identically in terms of which rules load. The difference is only in how the AI applies the output -- Chat explains and suggests, Composer directly writes files.
+All methods work identically in terms of which rules load. The difference is only in how the AI applies the output -- Chat explains and suggests, Composer directly writes files.
 
 ---
 
 ## Agent Reference
 
-### @agent-new-endpoint
+### @agent-new-endpoint (`/new-endpoint`)
 
 **Purpose:** Creates a complete new API endpoint from scratch, producing a full set of scaffolded files: blueprint, routes, schemas, service layer, tests, factory, and blueprint registration. Seven files in one invocation, all following project conventions for naming, structure, and patterns.
 
@@ -100,7 +101,7 @@ Both methods work identically in terms of which rules load. The difference is on
 
 ---
 
-### @agent-code-generation
+### @agent-code-generation (`/generate`)
 
 **Purpose:** Domain-aware code generation that automatically loads the right rules based on what layer you're working in. It detects whether you're writing a route, service, model, component, or schema and applies the corresponding project conventions without you having to remember them.
 
@@ -153,7 +154,7 @@ Both methods work identically in terms of which rules load. The difference is on
 
 ---
 
-### @agent-test-generation
+### @agent-test-generation (`/test`)
 
 **Purpose:** Generates tests following the project's exact testing patterns, including factory `build`/`create` usage, `enable_factory_create` fixtures, `jest-axe` accessibility checks, and Playwright E2E conventions. Produces tests that look like a team member wrote them, not generic AI output.
 
@@ -207,7 +208,7 @@ Both methods work identically in terms of which rules load. The difference is on
 
 ---
 
-### @agent-migration
+### @agent-migration (`/migration`)
 
 **Purpose:** Generates Alembic database migrations with correct naming conventions, `schema="api"`, UUID primary keys, and proper `upgrade()`/`downgrade()` functions. Follows the project's migration patterns exactly so you don't have to remember the boilerplate.
 
@@ -264,7 +265,7 @@ Both methods work identically in terms of which rules load. The difference is on
 
 ---
 
-### @agent-i18n
+### @agent-i18n (`/i18n`)
 
 **Purpose:** Manages translations in the project's centralized single-file pattern with correct key naming conventions. Ensures all user-facing text follows the established structure with PascalCase top-level keys and camelCase nested keys.
 
@@ -316,7 +317,7 @@ Both methods work identically in terms of which rules load. The difference is on
 
 ---
 
-### @agent-adr
+### @agent-adr (`/adr`)
 
 **Purpose:** Writes Architecture Decision Records following the project's established format. ADRs capture the "why" behind significant technical decisions, making it easy for future team members to understand the context, constraints, and alternatives that were considered.
 
@@ -367,6 +368,73 @@ Both methods work identically in terms of which rules load. The difference is on
 - Don't skip the "Alternatives Considered" section -- it's the most valuable part of an ADR
 - Don't write ADRs for decisions that haven't been made yet (those are RFCs)
 - Don't be vague about constraints -- name the specific requirement that rules out alternatives
+
+---
+
+### @agent-debugging (`/debug`)
+
+**Purpose:** Debugging assistant that traces errors through the codebase, identifies root causes, checks for regressions, and suggests convention-compliant fixes. Handles Python stack traces, frontend errors, test failures, build errors, CI/CD failures, database issues, and infrastructure errors.
+
+**When to use:**
+- You have a stack trace, error message, or failing test and need help diagnosing it
+- A test passes locally but fails in CI
+- You're seeing unexpected behavior and want to trace the execution path
+- A migration is failing in staging or production
+- You want to understand why an error is happening, not just fix the symptom
+
+**When NOT to use:**
+- The error message is self-explanatory and the fix is obvious
+- You need to write new code (use `@agent-code-generation` instead)
+- You're reviewing code quality, not debugging a specific error (use `@pr-review` instead)
+
+**How to invoke:**
+```
+@agent-debugging <paste the error, stack trace, or description of unexpected behavior>
+```
+
+**Example prompts:**
+
+1. **API stack trace:**
+   `@agent-debugging Here's a stack trace from the API: [paste traceback]. What's wrong?`
+
+2. **Intermittent E2E failure:**
+   `@agent-debugging This E2E test is failing intermittently: test_search_filters in search.spec.ts. Can you investigate?`
+
+3. **Form submission error:**
+   `@agent-debugging I'm getting a 500 error when submitting a form. Here's the error log: [paste log]`
+
+4. **CI-only failure:**
+   `@agent-debugging The CI build is failing with this error: [paste error]. Works fine locally.`
+
+5. **Migration failure:**
+   `@agent-debugging This migration is failing in staging: [paste error]. What's the issue?`
+
+**What the agent does:**
+1. **Classifies** the error type and loads relevant domain context via MCP tools
+2. **Investigates** by reading files in the stack trace and tracing the call chain
+3. **Checks for regressions** using `git-history-analyzer` to identify when the issue was introduced
+4. **Presents root cause** with specific file paths, line numbers, and evidence
+5. **Suggests a fix** that follows project conventions, with code changes
+6. **Validates the fix** through a quality gate pipeline with domain-specific specialists
+
+**What the agent has access to:**
+- All 32 domain rule files for convention-aware debugging
+- MCP server tools (`get_architecture_section`, `get_rules_for_file`, `get_conventions_summary`)
+- Compound Engineering specialists (conventions reviewer, language reviewers, security, performance, data integrity)
+- Compound Knowledge base for historical context and ADR rationale
+- `git-history-analyzer` for regression detection
+
+**Tips for better results:**
+- Include the **full** stack trace or error output, not just the last line
+- Mention if the error is **intermittent** or **consistent**
+- Note any **recent changes** that might have caused it
+- Specify if it happens **locally, in CI, or in a deployed environment**
+- Include the **test name** if it's a test failure
+
+**Common pitfalls:**
+- Don't paste truncated errors — the agent needs the full context to trace the call chain
+- Don't assume it's a code bug — it might be a configuration, environment, or data issue
+- If the agent asks a clarifying question, answer it rather than re-pasting the same error
 
 ---
 
@@ -425,24 +493,112 @@ See [PR Review Guide](11-pr-review-guide.md) for the full deep dive on how this 
 
 ---
 
+### @agent-refactor (`/refactor`)
+
+**Purpose:** Refactoring assistant that plans and executes multi-file structural changes safely. It maps the full blast radius, executes across all affected files in the correct phase order, updates imports and tests, and verifies nothing broke -- all while following project conventions exactly.
+
+**When to use:**
+- Extracting shared logic into a new file, function, hook, or component
+- Splitting an oversized file or module into smaller, focused pieces
+- Moving logic between architectural layers (e.g., route handler to service layer)
+- Renaming a function, class, or variable across all usages in the codebase
+- Consolidating duplicated patterns into a single shared implementation
+- Changing a function's interface/signature and updating all callers
+- Removing dead code, unused exports, or deprecated patterns
+
+**When NOT to use:**
+- Simple one-line renames within a single file (just do it by hand)
+- Adding new functionality (use `@agent-code-generation` or `@agent-new-endpoint`)
+- Fixing a bug (use `@agent-debugging` to find the root cause first)
+- The refactor is really a rewrite -- if behavior changes, it's not a refactor
+
+**How to invoke:**
+```
+@agent-refactor <describe the structural change you want to make>
+```
+
+**Example prompts:**
+
+1. **Extract shared logic:**
+   `@agent-refactor Extract the eligibility check logic from api/src/services/applications/submit.py into a new api/src/services/applications/eligibility.py`
+
+2. **Split oversized component:**
+   `@agent-refactor Split ApplicationForm.tsx into sub-components: FormHeader, FormFields, FormActions, and FormValidation`
+
+3. **Move between layers:**
+   `@agent-refactor Move the email sending logic from the route handler in api/src/api/users_v1/users_routes.py into a service function`
+
+4. **Rename across codebase:**
+   `@agent-refactor Rename useFormData to useApplicationFormData across all files that import it`
+
+5. **Consolidate duplicated patterns:**
+   `@agent-refactor There are 4 different pagination implementations across the API services. Consolidate them into a shared utility.`
+
+**What the agent does:**
+1. **Classifies** the refactor type (Extract, Split, Move, Rename, Consolidate, Restructure, Delete)
+2. **Maps the blast radius** -- every file that will be affected, including tests and barrel files
+3. **Assesses risk** (Low/Medium/High) based on scope and caller count
+4. **Presents a plan** with a full file table and waits for your approval
+5. **Executes in phases** -- Create Before Delete → Update Source → Update Callers → Update Tests → Update Types → Clean Up
+6. **Verifies** with linting, type checking, test suite, and import verification
+7. **Checks for regressions** via `git-history-analyzer`
+8. **Runs quality gates** -- convention compliance, language quality, domain validation, code simplicity, pattern consistency
+
+**Tips for better results:**
+- Be specific about what's moving and where it's going
+- Mention if there are callers you know about that should be updated
+- For renames, specify whether it's just the function or the file too
+- For consolidation, point to at least two of the duplicate implementations
+
+**Common pitfalls:**
+- Don't approve the plan without checking the blast radius is complete
+- For High risk refactors, consider breaking into smaller steps
+- The agent preserves behavior exactly -- if you also want behavioral changes, do those separately
+
+---
+
 ## Choosing the Right Agent
 
-| Task | Best Agent |
-|------|-----------|
-| Full new endpoint (7 files) | `@agent-new-endpoint` |
-| Single file or function | `@agent-code-generation` |
-| Tests for existing code | `@agent-test-generation` |
-| Database schema change | `@agent-migration` |
-| User-facing text | `@agent-i18n` |
-| Technical decision document | `@agent-adr` |
-| Code review | `@pr-review` |
-| Quick question about conventions | No agent needed -- just ask in chat |
+| Task | Slash Command (preferred) | Agent Name |
+|------|--------------------------|-----------|
+| Full new endpoint (7 files) | `/new-endpoint` | `@agent-new-endpoint` |
+| Single file or function | `/generate` | `@agent-code-generation` |
+| Tests for existing code | `/test` | `@agent-test-generation` |
+| Database schema change | `/migration` | `@agent-migration` |
+| User-facing text | `/i18n` | `@agent-i18n` |
+| Technical decision document | `/adr` | `@agent-adr` |
+| Debugging an error or failure | `/debug` | `@agent-debugging` |
+| Multi-file structural change | `/refactor` | `@agent-refactor` |
+| Code review | `/review-pr` | `@pr-review` |
+| Quick question about conventions | No agent needed -- just ask in chat | -- |
 
 **Decision shortcuts:**
-- If your task touches **7 files across multiple layers**, start with `@agent-new-endpoint`.
-- If your task touches **1 file**, start with `@agent-code-generation` or `@agent-test-generation`.
-- If your task touches **0 code files** (just a decision or translation), use `@agent-adr` or `@agent-i18n`.
-- If you're **reviewing** rather than **writing**, use `@pr-review`.
+- If your task touches **7 files across multiple layers**, start with `/new-endpoint` (or `@agent-new-endpoint`).
+- If your task touches **1 file**, start with `/generate` (or `@agent-code-generation`) or `/test` (or `@agent-test-generation`).
+- If your task touches **0 code files** (just a decision or translation), use `/adr` (or `@agent-adr`) or `/i18n` (or `@agent-i18n`).
+- If you're **debugging** an error, stack trace, or failing test, use `/debug` (or `@agent-debugging`).
+- If you're **restructuring** existing code across multiple files, use `/refactor` (or `@agent-refactor`).
+- If you're **reviewing** rather than **writing**, use `/review-pr` (or `@pr-review`).
+
+---
+
+## Cursor Five-Primitive System
+
+The project has migrated from a flat `.mdc` rule file structure to Cursor's five-primitive system. Here is how the primitives map to this toolkit:
+
+| Primitive | Directory | Purpose | Example |
+|-----------|-----------|---------|---------|
+| **Rules** | `.cursor/rules/` | Auto-activating convention files (glob-matched) | `api-routes.mdc`, `frontend-components.mdc` |
+| **Agents** | `.cursor/agents/` | Subagents invoked by name or slash command | `agent-new-endpoint.md`, `agent-debugging.md` |
+| **Skills** | `.cursor/skills/` | Reusable, focused capabilities with their own directories | `pr-review/SKILL.md` |
+| **Commands** | Slash commands | Quick invocation entry points for agents and skills | `/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr` |
+| **Hooks** | `.cursor/hooks/` | Event-driven automation (e.g., pre-commit checks) | Triggered automatically on specific events |
+
+**Key migration changes:**
+- Agent files moved from `.cursor/rules/agent-*.mdc` to `.cursor/agents/*.md`. They are now discovered by Cursor as proper subagents.
+- The PR review agent moved from `.cursor/rules/pr-review.mdc` to `.cursor/skills/pr-review/SKILL.md`.
+- Slash commands (`/debug`, `/refactor`, etc.) are now the preferred invocation method, though `@agent-name` references still work.
+- Agents are invoked as subagents, not via `@agent-name .mdc` references.
 
 ---
 

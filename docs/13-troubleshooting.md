@@ -120,14 +120,14 @@ token ([Getting Started](03-getting-started.md)).
 
 ### Agent rules not appearing in chat
 
-**Symptom:** Typing `@agent-code-generation` shows no suggestions.
+**Symptom:** Typing `@agent-code-generation` or `/generate` shows no suggestions.
 
-**Likely Cause:** `.cursor/agents/` directory missing or symlink broken.
+**Likely Cause:** `.cursor/agents/` directory missing or symlink broken. Agents now live in `.cursor/agents/` as proper Cursor subagents (not in `.cursor/rules/`).
 
 **Fix:**
 1. Verify: `ls ~/GitHub/simpler-grants-gov/.cursor/agents/`
 2. If missing, re-run `setup.sh`.
-3. Restart Cursor. Type `@agent` and wait for autocomplete.
+3. Restart Cursor. Type `@agent` or try a slash command like `/debug` and wait for autocomplete.
 
 **Prevention:** Restart Cursor after any setup changes.
 
@@ -224,7 +224,7 @@ token ([Getting Started](03-getting-started.md)).
 **Fix:**
 1. Check dispatch table in [Auto-Activating Rules](04-auto-activating-rules.md).
 2. Reference an example: "Follow the same pattern as `api/src/services/users/get_user.py`"
-3. Use agents (`@agent-code-generation`) for extra convention context.
+3. Use agents (`/generate` or `@agent-code-generation`) for extra convention context.
 
 **Prevention:** Reference existing files as examples when generating new code.
 

@@ -14,6 +14,8 @@ This cookbook contains 42 copy-paste ready prompts for the most common developme
 
 **How to use:** Copy a prompt, replace all `{placeholders}` with your actual values, and paste into Cursor chat. Have the relevant source files open so auto-activating rules load the right context.
 
+> **Slash commands are the preferred invocation method.** Where prompts below reference agents (e.g., `@agent-debugging`), you can use the corresponding slash command instead (e.g., `/debug`). Available commands: `/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`. The `@agent-name` syntax still works but slash commands are faster.
+
 ---
 
 ## 1. API Development
@@ -193,7 +195,65 @@ Performance review of these changes. Check: N+1 queries (eager loading?), missin
 
 ## 6. Debugging
 
-Prompts for using the AI as a debugging partner. Always include the actual error output and your hypothesis.
+Prompts for using the AI as a debugging partner. Use `/debug` (or invoke the `@agent-debugging` subagent directly) for structured multi-step investigation with regression detection, or paste these directly into chat for quick debugging.
+
+### Agent-Powered Debugging (Recommended)
+
+These prompts invoke `/debug` (or `@agent-debugging`) for comprehensive investigation with regression checking, convention-aware fixes, and specialist validation.
+
+Debug with full stack trace -- use for any error with a traceback:
+```
+@agent-debugging Here's the full error:
+
+{paste complete stack trace or error output}
+
+This started happening after {recent_change_or_PR}. It happens {consistently / intermittently}.
+```
+
+Debug intermittent E2E test failure -- use when Playwright tests flake:
+```
+@agent-debugging This E2E test is failing intermittently:
+
+File: frontend/tests/e2e/{feature}/{test_file}.spec.ts
+Test name: {test_name}
+Tag: @{execution_tag}
+
+It passes ~{percent}% of the time. Here's the failure output:
+{paste Playwright error output}
+```
+
+Debug form submission error -- use for the complex forms domain:
+```
+@agent-debugging I'm getting a {status_code} error when submitting form {form_name}.
+
+Error log:
+{paste API error log}
+
+The form uses form_schema {schema_name}. The submission endpoint is POST /v1/{endpoint}.
+```
+
+Debug CI-only failure -- use when it works locally but fails in GitHub Actions:
+```
+@agent-debugging The CI check '{workflow_name}' is failing but it passes locally.
+
+CI error output:
+{paste error}
+
+I haven't changed {relevant_config}. This started failing on {date_or_PR}.
+```
+
+Debug migration failure -- use for Alembic or data migration issues:
+```
+@agent-debugging This migration is failing in {environment}:
+
+{paste migration error}
+
+The migration file is api/src/db/migrations/versions/{migration_file}.py.
+```
+
+### Quick Debugging (No Agent)
+
+These prompts skip the full agent workflow for simpler issues.
 
 Debug API error -- use when an endpoint returns an unexpected status code:
 ```
@@ -285,6 +345,35 @@ Modernize model syntax -- use when a model uses legacy Column() instead of Mappe
 Update api/src/db/models/{model_file}.py to SQLAlchemy 2.0: Column(Type) -> Mapped[type] = mapped_column(sa_type), nullable=True -> Mapped[type | None], Boolean default -> Mapped[bool] = mapped_column(default=X). Ensure ApiSchemaTable + TimestampMixin inheritance, text_type for strings. Code-only refactor, no schema change, no migration needed.
 ```
 
+### Agent-Powered Refactoring
+
+These prompts invoke `/refactor` (or `@agent-refactor`) for multi-file structural changes with full blast radius tracking, phased execution, and quality gate validation.
+
+Extract service function with full tracking -- use when business logic is scattered across route handlers:
+```
+@agent-refactor Extract the eligibility check logic from api/src/services/applications/{service_file}.py into a new api/src/services/applications/{new_service}.py. Multiple routes call this logic. Map all callers, update imports, and ensure tests follow the code.
+```
+
+Split oversized component -- use when a frontend component has grown too large:
+```
+@agent-refactor Split frontend/src/components/{path}/{ComponentName}.tsx into sub-components: {SubComponent1}, {SubComponent2}, {SubComponent3}. Keep the parent as a composition wrapper. Move tests alongside each new component. Preserve all accessibility attributes.
+```
+
+Consolidate duplicated patterns -- use when the same logic appears in multiple places:
+```
+@agent-refactor There are {N} implementations of {pattern_description} across {file_1}, {file_2}, {file_3}. Consolidate into a shared utility at {target_path}. Update all call sites. Ensure no behavioral difference.
+```
+
+Move logic between architectural layers -- use when code is in the wrong layer:
+```
+@agent-refactor Move the {description} logic from api/src/api/{domain}_v1/{domain}_routes.py into a service function at api/src/services/{domain}/{service_name}.py. The route handler should become thin: call service, return ApiResponse. Preserve all error handling and logging conventions.
+```
+
+Rename across codebase -- use when renaming a function, class, or variable used in many files:
+```
+@agent-refactor Rename {old_name} to {new_name} across all files that reference it. This includes imports, function calls, test assertions, and type references. Verify zero remaining references to the old name after completion.
+```
+
 ## 8. Documentation
 
 Prompts for technical writing. The AI produces good first drafts of structured documents when given clear outlines.
@@ -310,7 +399,7 @@ Add documentation to {function_name} in {file_path}. Docstring with params and r
 
 1. **Replace all `{placeholders}`** before pasting.
 2. **Open relevant files** in Cursor so auto-activating rules load.
-3. **Use agents** for multi-file tasks: `@agent-new-endpoint`, `@agent-test-generation`, `@agent-code-generation`.
+3. **Use agents** for multi-file tasks: `/new-endpoint` (or `@agent-new-endpoint`), `/test` (or `@agent-test-generation`), `/generate` (or `@agent-code-generation`).
 4. **Iterate** on 80%-correct output rather than re-prompting from scratch.
 5. **Name conventions explicitly** when the AI misses one: "Per our api-routes convention, reorder the decorators."
 

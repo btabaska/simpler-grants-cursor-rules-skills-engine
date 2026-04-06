@@ -200,13 +200,14 @@ Verifies that generated code follows project conventions.
 
 Verifies that agent definitions are accessible.
 
-1. In Cursor chat, type:
+1. In Cursor chat, type the slash command (preferred) or agent name:
 
    ```
-   @agent-test-generation Write a test for a service function that retrieves a
+   /test Write a test for a service function that retrieves a
    user by user_id. The function is get_user(db_session, user_id) and returns a
    User model or raises a 404.
    ```
+   (You can also use `@agent-test-generation` instead of `/test`.)
 
 2. **What you should see:** A test file with:
    - `Factory.build()` or `Factory.create()` (with `enable_factory_create`
@@ -260,7 +261,7 @@ Verifies that the Model Context Protocol server is running.
 - [ ] `setup.sh` completed without errors
 - [ ] Rules activate when editing API files (Exercise 1)
 - [ ] Generated code follows project conventions (Exercise 2)
-- [ ] Agents respond when invoked with `@agent-*` (Exercise 3)
+- [ ] Agents respond when invoked via slash commands or `@agent-*` (Exercise 3)
 - [ ] Snippets appear in autocomplete (Exercise 4)
 - [ ] MCP server connects and returns data (Exercise 5)
 

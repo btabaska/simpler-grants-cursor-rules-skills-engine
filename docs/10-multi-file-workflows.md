@@ -24,10 +24,10 @@ Cursor has two modes for AI interaction. Understanding when to use each is key t
 |------|------|-----|
 | Ask a question about conventions | Chat | No files to change |
 | Generate a single function | Chat | One file, one change |
-| Create a full new endpoint (7 files) | Composer + @agent-new-endpoint | Multiple files need coordinated creation |
+| Create a full new endpoint (7 files) | Composer + `/new-endpoint` (or `@agent-new-endpoint`) | Multiple files need coordinated creation |
 | Rename a field across API + frontend | Composer | Changes span many files |
 | Review code against conventions | Chat + @pr-review | Review is read-only analysis |
-| Add i18n strings + update component | Composer + @agent-i18n | Translation file + component change |
+| Add i18n strings + update component | Composer + `/i18n` (or `@agent-i18n`) | Translation file + component change |
 | Debug a test failure | Chat | Investigation, not multi-file editing |
 | Write tests for existing code | Chat or Composer | Chat for 1 test file, Composer if tests span multiple files |
 
@@ -36,7 +36,7 @@ Cursor has two modes for AI interaction. Understanding when to use each is key t
 ### Starting a Composer Session
 
 1. Press Cmd+I (Ctrl+I on Windows/Linux)
-2. Reference an agent or notepad: @agent-new-endpoint
+2. Reference an agent or notepad: use `/new-endpoint` (or `@agent-new-endpoint`)
 3. Describe what you need
 4. Composer shows proposed changes across files
 5. Review each file's diff individually
@@ -45,10 +45,11 @@ Cursor has two modes for AI interaction. Understanding when to use each is key t
 ### Example: New Endpoint via Composer
 
 ```
-@agent-new-endpoint Create a GET /v1/organizations/<org_id>/members endpoint
+/new-endpoint Create a GET /v1/organizations/<org_id>/members endpoint
 that returns paginated organization members. JWT + API key auth.
 The OrganizationMember model exists. Include tests.
 ```
+(You can also type `@agent-new-endpoint` instead of `/new-endpoint`.)
 
 Composer proposes changes to ~5 files:
 - New route handler in api/src/api/organizations_v1/organization_routes.py
@@ -89,27 +90,27 @@ Instead of asking the AI to do everything at once:
 
 1. **API model + migration** (Composer)
    ```
-   @agent-migration Create the saved_search table and model
+   /migration Create the saved_search table and model
    ```
 2. **API service + routes** (Composer)
    ```
-   @agent-new-endpoint Create the saved search endpoints using the model from step 1
+   /new-endpoint Create the saved search endpoints using the model from step 1
    ```
 3. **API tests** (Chat or Composer)
    ```
-   @agent-test-generation Write tests for the saved search routes and services
+   /test Write tests for the saved search routes and services
    ```
 4. **Frontend component** (Chat)
    ```
-   @agent-code-generation Create the SavedSearchList component
+   /generate Create the SavedSearchList component
    ```
 5. **Frontend tests** (Chat)
    ```
-   @agent-test-generation Write tests for SavedSearchList
+   /test Write tests for SavedSearchList
    ```
 6. **i18n** (Chat)
    ```
-   @agent-i18n Add translations for the saved searches feature
+   /i18n Add translations for the saved searches feature
    ```
 7. **Self-review** (Chat)
    ```
@@ -136,10 +137,10 @@ Migrations are special because they must be reversible and coordinated with mode
 **Why this order?** The model defines the schema; the migration implements it. If you generate the migration first, you might discover the model needs adjustment, forcing you to regenerate.
 
 ```
-Step 1: @agent-code-generation Update the User model to add notification_preferences JSONB column
-Step 2: @agent-migration Generate migration for the notification_preferences column I just added
+Step 1: /generate Update the User model to add notification_preferences JSONB column
+Step 2: /migration Generate migration for the notification_preferences column I just added
 Step 3: Now create the service function for updating notification preferences
-Step 4: @agent-test-generation Write tests for the notification preferences feature
+Step 4: /test Write tests for the notification preferences feature
 ```
 
 ## Large Refactors
