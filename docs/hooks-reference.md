@@ -2,6 +2,8 @@
 
 The Simpler Grants AI Coding Toolkit uses Cursor hooks for deterministic quality enforcement. Anything that should happen EVERY time becomes a hook, not just a directive.
 
+> **Source prompts:** The 6 hooks documented below were generated from the prompt backlog under [`cursor-tooling-prompts/hooks/`](../cursor-tooling-prompts/hooks/). Each prompt follows the 10-section contract in [`cursor-tooling-prompts/_META_PROMPT.md`](../cursor-tooling-prompts/_META_PROMPT.md) and is the contract-of-record if this reference and the prompt ever disagree.
+
 ## Architecture
 
 - **Runtime:** Bun (TypeScript)
@@ -104,3 +106,49 @@ Runs when the agent session ends. Can take longer (up to 120s).
 - **Timeout errors:** Handlers have a 5s timeout, dispatchers 10s, stop handlers 120s
 - **False positives:** Convention checks use heuristic regex — disable individual handlers by commenting out their import in the dispatcher
 - **Logs growing:** Periodically clear `.cursor/hooks/logs/`
+
+## Additional Hooks
+
+The following hooks live alongside the dispatcher-based handlers above and are registered individually in `.cursor/hooks.json`.
+
+### `pre-commit-pii-scanner`
+
+- **Event:** `beforeShellExecution`
+- **Trigger:** shell command contains `git commit`
+- **Behavior:** scans command text + `git diff --cached` for SSN / email / phone patterns; reads `.cursor/hooks/.pii-allowlist`; exit 2 blocks commit with `file:pattern` reason.
+- **Bypass:** add synthetic value to `.cursor/hooks/.pii-allowlist` or set `PII_ALLOWLIST_FILE`.
+
+### `pre-commit-convention-checker`
+
+- **Event:** `beforeShellExecution`
+- **Trigger:** shell command contains `git commit`, and there are staged `.py` / `.ts` / `.tsx` / `.js` / `.jsx` files
+- **Behavior:** regex-scans staged files for hard convention violations; exit 2 blocks with `file:line [rule] message` list.
+- **Bypass:** fix the violation; emergency unregister in `.cursor/hooks.json`.
+
+### `background-accessibility-monitor`
+
+- **Event:** `afterFileEdit`
+- **Trigger:** edited file matches `frontend/**/*.{tsx,jsx}` and does not contain `a11y-monitor: disable`
+- **Behavior:** WCAG 2.1 AA checks (alt, roles, tabIndex, href, label); advisory stderr + JSONL log at `.cursor/hooks/logs/a11y-violations.jsonl`.
+- **Bypass:** `// a11y-monitor: disable` marker in the file.
+
+### `background-test-runner`
+
+- **Event:** `stop`
+- **Trigger:** `git diff --name-only HEAD` shows touched files under `api/` or `frontend/`
+- **Behavior:** spawns scoped test suites as detached background jobs; logs to `.cursor/hooks/logs/test-runner.log`; never blocks.
+- **Bypass:** stash changes or unregister hook.
+
+### `pr-auto-labeler`
+
+- **Event:** `stop`
+- **Trigger:** `gh` CLI present, not on main/master, open PR exists for current branch
+- **Behavior:** derives labels from touched paths; calls `gh pr edit --add-label` (additive).
+- **Bypass:** uninstall `gh` or unregister hook.
+
+### `stale-documentation-detector`
+
+- **Event:** `afterFileEdit`
+- **Trigger:** edited file is under `api/` / `frontend/` / `src/` / `lib/` and not Markdown; `documentation/` or `docs/` exists
+- **Behavior:** warns when referencing docs are older than `STALE_THRESHOLD_DAYS` (default 30).
+- **Bypass:** update the doc, raise `STALE_THRESHOLD_DAYS`, or unregister hook.

@@ -4,6 +4,8 @@
 
 This is the complete reference for all 24 auto-activating rule files in the Simpler Grants toolkit. Each rule is a `.mdc` file that Cursor loads automatically based on the file you are editing.
 
+> **Source prompts:** The 16 most recent rules were generated from the prompt backlog under [`cursor-tooling-prompts/rules/`](../cursor-tooling-prompts/rules/). Each prompt there follows the 10-section contract in [`cursor-tooling-prompts/_META_PROMPT.md`](../cursor-tooling-prompts/_META_PROMPT.md) and is the contract-of-record if this reference and the prompt ever disagree.
+
 ---
 
 ## How Auto-Activation Works
@@ -684,6 +686,175 @@ Note: `api-form-schema.mdc` and `forms-vertical.mdc` both activate for files und
 - 4-shard parallel execution model
 - Network-level API mocking (not implementation mocking)
 - Blob report merging for CI
+
+---
+
+### 26. api-cli.mdc
+
+**Glob pattern:** `api/src/cli/**/*.py`
+**Purpose:** Standardize Flask CLI commands.
+
+**Key directives:**
+
+- One command group per module; central registration
+- Click typed options with help text
+- `click.echo` / Click exceptions (no `print`, no raw `sys.exit`)
+- `@flask_db.with_db_session()` + `with db_session.begin():`
+- Structured logging; no PII
+- `CliRunner` tests with mocked services
+
+---
+
+### 27. api-constants.mdc
+
+**Glob pattern:** `api/src/constants/**/*.py`, `api/src/db/lookups/**/*.py`, `api/src/**/*_enum.py`
+**Purpose:** Constants, StrEnum, and lookup table patterns.
+
+**Key directives:**
+
+- StrEnum for small immutable dev-time sets
+- UPPER_SNAKE_CASE constants grouped by concern
+- Four-tier lookup pattern (StrEnum -> LookupConfig -> LookupTable -> FK)
+- Lookup rows changed only via migrations
+- Single source of truth — no duplicated magic strings
+
+---
+
+### 28. api-logging.mdc
+
+**Glob pattern:** `api/src/**/*.py`
+**Purpose:** Structured logging conventions.
+
+**Key directives:**
+
+- `logger = logging.getLogger(__name__)`
+- Static messages, dynamic values in `extra={}` with flat snake_case keys
+- `info` for 4xx; `warning` only for alerts; `error`/`exception` with `exc_info`
+- No PII or secrets in logs
+- Request-scoped context via `add_extra_data_to_current_request_logs`
+
+---
+
+### 29. data-privacy.mdc
+
+**Glob pattern:** `api/src/**/*.py`, `frontend/src/**/*.{ts,tsx}`, `infra/**/*.tf`
+**Purpose:** PII classification and handling across the stack.
+
+**Key directives:**
+
+- Classify Public / Internal / Confidential / PII
+- No PII in logs, analytics, error tracking, URLs, or client storage
+- Field-level authorization in services
+- Soft delete with scheduled hard delete per retention policy
+- Third-party flows only through approved adapters within FedRAMP boundary
+
+---
+
+### 30. docker.mdc
+
+**Glob pattern:** `**/Dockerfile`, `**/Dockerfile.*`, `**/docker-compose*.yml`
+**Purpose:** Container image and compose conventions.
+
+**Key directives:**
+
+- Pinned, approved base images
+- Multi-stage build; runtime excludes build tooling
+- Non-root UID
+- BuildKit secret mounts; no baked credentials
+- HEALTHCHECK and SIGTERM handling
+
+---
+
+### 31. fedramp.mdc
+
+**Glob pattern:** `api/src/**/*.py`, `frontend/src/**/*.{ts,tsx}`, `infra/**/*.tf`, `**/Dockerfile*`, `.github/workflows/**/*.yml`
+**Purpose:** FedRAMP Moderate boundary alignment.
+
+**Key directives:**
+
+- No new outbound dependencies without SSP entry
+- Least-privilege IAM, MFA, rotated secrets
+- Tamper-evident audit logging; correlation IDs
+- TLS 1.2+ in transit; KMS at rest
+- SCA/SAST/container scanning gates
+
+---
+
+### 32. github-issues.mdc
+
+**Glob pattern:** `.github/ISSUE_TEMPLATE/**/*`, `.github/PULL_REQUEST_TEMPLATE*`, `.github/workflows/**/*.yml`
+**Purpose:** Issue/PR template and workflow conventions.
+
+**Key directives:**
+
+- YAML form issue templates
+- PR template with linked issue, tests, screenshots, a11y + privacy notes
+- Canonical labels, conventional commit titles
+- Private advisory for security issues
+- Workflows pinned by SHA with least-privilege permissions
+
+---
+
+### 33. makefile.mdc
+
+**Glob pattern:** `**/Makefile`, `**/*.mk`
+**Purpose:** Makefile task-runner conventions.
+
+**Key directives:**
+
+- `.PHONY` declared
+- Namespaced targets with `help` default
+- Thin dispatch to language tooling
+- Same targets in CI and local
+- No hardcoded secrets
+
+---
+
+### 34. openapi.mdc
+
+**Glob pattern:** `api/src/api/**/*_schemas.py`, `api/src/api/**/*_routes.py`, `api/openapi.yaml`, `api/openapi.json`, `api/src/api/__init__.py`
+**Purpose:** OpenAPI spec generation and documentation.
+
+**Key directives:**
+
+- Spec generated from code, never hand-edited
+- `@blueprint.doc` with summary/description/responses/security/tags
+- Field metadata descriptions and `required=True`
+- URL-prefixed versioning; no in-place breaking changes
+- Spectral linting in CI
+
+---
+
+### 35. performance.mdc
+
+**Glob pattern:** `api/src/**/*.py`, `frontend/src/**/*.{ts,tsx}`
+**Purpose:** Performance budgets and patterns.
+
+**Key directives:**
+
+- Explicit `selectinload(Model.rel)`
+- Paginated, indexed list endpoints
+- ISR vs `force-dynamic` chosen explicitly
+- Lazy-loaded heavy client components
+- p95 latency and Core Web Vitals budgets
+- Background tasks for long-running work
+
+---
+
+### 36. security.mdc
+
+**Glob pattern:** `api/src/**/*.py`, `frontend/src/**/*.{ts,tsx}`, `infra/**/*.tf`, `**/Dockerfile*`
+**Purpose:** Application-level security controls.
+
+**Key directives:**
+
+- Multi-auth + 403 on identity mismatch
+- Marshmallow edge validation; no string-interpolated SQL
+- Secrets from SSM / Secrets Manager only
+- SCA/SAST gating; CC0-compatible dependencies
+- Secure cookies, strict CORS, rate limiting
+- Vetted crypto, TLS 1.2+
+- Security events logged without secrets
 
 ---
 

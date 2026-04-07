@@ -5,6 +5,14 @@
       {
         "command": "bun run .cursor/hooks/dispatchers/before-shell.ts",
         "description": "Security guardrails: block dangerous commands, protect sensitive files, audit trail"
+      },
+      {
+        "command": "bash .cursor/hooks/scripts/pre-commit-pii-scanner.sh",
+        "description": "pre-commit-pii-scanner: block git commits containing SSN / email / phone PII (HHS / FedRAMP)"
+      },
+      {
+        "command": "bash .cursor/hooks/scripts/pre-commit-convention-checker.sh",
+        "description": "pre-commit-convention-checker: block git commits that violate hard Python/TypeScript conventions"
       }
     ],
     "beforeMCPExecution": [
@@ -29,12 +37,28 @@
       {
         "command": "bun run .cursor/hooks/dispatchers/after-file-edit.ts",
         "description": "Quality enforcement: auto-format, convention checks, import validation, test patterns, a11y, TODO scanning"
+      },
+      {
+        "command": "bash .cursor/hooks/scripts/background-accessibility-monitor.sh",
+        "description": "background-accessibility-monitor: advisory WCAG 2.1 AA / Section 508 scan on frontend edits (non-blocking)"
+      },
+      {
+        "command": "bash .cursor/hooks/scripts/stale-documentation-detector.sh",
+        "description": "stale-documentation-detector: warn when edited source has docs older than STALE_THRESHOLD_DAYS (non-blocking)"
       }
     ],
     "stop": [
       {
         "command": "bun run .cursor/hooks/dispatchers/on-stop.ts",
         "description": "Session wrap-up: git summary, test runner, coverage reporter, audit log finalization"
+      },
+      {
+        "command": "bash .cursor/hooks/scripts/background-test-runner.sh",
+        "description": "background-test-runner: spawn scoped pytest / npm test for touched surfaces (non-blocking)"
+      },
+      {
+        "command": "bash .cursor/hooks/scripts/pr-auto-labeler.sh",
+        "description": "pr-auto-labeler: apply area/type labels to the branch's open PR via gh CLI (non-blocking)"
       }
     ]
   }

@@ -1,5 +1,91 @@
 # Changelog
 
+## Unreleased
+
+### Agents
+- Added `adr-from-pr`: extracts architectural decisions from a PR description, `gh pr view` output, or commit message and emits a sequentially-numbered ADR with sourcing, alternatives, constraints, and supersession links.
+- Added `api-docs-sync`: detects drift between APIFlask route handlers / Marshmallow schemas and the committed OpenAPI spec, classifies changes as additive / modifying / breaking, and updates the spec while preserving hand-written examples.
+- Added `changelog-generator`: drafts a categorized release section for `CHANGELOG.md` from merged PRs since a given cutoff, matching the project's voice and crediting external contributors.
+- Added `codemod`: AST-based, batched large-scale code transformations (libcst for Python, ts-morph for TypeScript) with scoped test runs, fixup commits per batch, and `git restore` rollback on failure.
+- Added `contributor-onboarding`: read-only, full-stack guided tour agent that traces a feature from frontend page through API route, service, repository, and model with per-layer rule citations. Built-in tours: `opportunity-search`, `apply-for-grant`, `login`, `agency-profile`.
+- Added `debugging` usage guide under `documentation/cursor-tooling/agents/` (the agent itself shipped in v1.1.0).
+- Added `dependency-update`: single-package upgrade agent that fetches intermediate changelogs, classifies breaking changes, updates manifest + lock together, patches affected call sites in a follow-up commit, runs scoped + broad tests, and drafts a PR body with risk assessment.
+- Added `e2e-scenario-builder`: Playwright scenario generator that reads sibling specs, uses existing auth fixtures, applies role → label → testid locator priority, enforces the `@smoke` / `@core-regression` tag policy, and validates via `--list` dry run.
+- Added `feature-flag`: end-to-end boolean feature-flag scaffolder across Terraform SSM, API config + branching, frontend `useFeatureFlag` hook, `.env.development`, and the cleanup tracker under `documentation/feature-flags/active.md`. Requires a mandatory target cleanup date.
+- Added `good-first-issue`: Identifies small, well-scoped contribution opportunities and drafts GitHub issue markdown with acceptance criteria and named learning outcomes.
+- Added `incident-response`: Triages production incidents, traces likely code paths, proposes immediate mitigations, enumerates root-cause hypotheses, and drafts blameless post-mortems.
+- Added `load-test-generator`: Generates runnable k6 or Locust load scenarios from the OpenAPI spec with realistic ramp stages and SLO assertions.
+- Added `performance-audit`: Audits endpoints and pages for N+1 queries, missing indexes, wasteful re-renders, bundle bloat, and unoptimized images via `performance-oracle` and `pattern-recognition-specialist`.
+- Added `pr-preparation`: Validates a branch for PR submission with scoped tests, per-file convention checks, title validation, description drafting, and self-review checklist.
+- Added `refactor` usage guide (agent and command already present): Plans and executes multi-file refactors with blast-radius analysis, staged execution, import updates, and specialist review gates.
+- Added `regression-detector`: Predicts PR regressions via diff call-graph mapping, untested-branch detection, and specialist delegation to `pattern-recognition-specialist`, `performance-oracle`, and `api-contract-checker`.
+- Added `test-plan-generator`: Produces QA-executable test plans across happy path, edge, error, accessibility, browser, responsive, and locale buckets.
+- Added `user-guide-updater`: Finds user-facing documentation affected by feature changes and drafts paragraph-level updates preserving the guide's voice.
+- Added `visual-regression`: Scaffolds Storybook stories and visual regression baselines for a component across viewports, states, themes, and locales.
+
+### Quality Gate Subagents
+- Added `accessibility-auditor`: scans React components, HTML, and form schema for WCAG 2.1 AA / Section 508 violations; invoked by visual-regression, e2e-scenario-builder, test-plan-generator.
+- Added `api-contract-checker`: validates APIFlask routes, Marshmallow schemas, and OpenAPI spec agreement; invoked by api-docs-sync, regression-detector, load-test-generator, new-endpoint.
+- Added `dependency-health-reviewer`: audits lockfiles for transitive regressions, license drift, duplicate installs, known CVEs; invoked by dependency-update, pr-preparation.
+- Added `documentation-staleness-detector`: flags prose documentation that no longer reflects the code it describes; invoked by api-docs-sync, user-guide-updater, codemod, refactor.
+- Added `form-schema-validator`: validates three-schema forms (JSON/UI/Rule) for cross-schema consistency and Grants.gov XML round-trip; invoked by new-endpoint, codemod, refactor, api-docs-sync.
+- Added `i18n-completeness-checker`: verifies no hardcoded user-facing strings and parity across locale bundles; invoked by i18n, user-guide-updater, codemod, new-endpoint.
+- Added `pii-leak-detector`: scans diffs, logs, fixtures, and post-mortems for PII, secrets, and embargoed security content; invoked by pr-preparation, incident-response, changelog-generator, dependency-update, debugging.
+- Added `responsive-design-checker`: validates USWDS breakpoint coverage, mobile-first layout, and 44x44 touch targets; invoked by visual-regression, codebase-conventions-reviewer, new-endpoint.
+- Added `sql-injection-scanner`: scans Python database code for string-interpolated SQL and ORM escape hatches; invoked by codebase-conventions-reviewer, kieran-python-reviewer, new-endpoint, debugging.
+- Added `test-quality-analyzer`: evaluates tests for meaningful assertions, factory_boy / jest-axe compliance, and flaky-test anti-patterns; invoked by test-generation, test-plan-generator, regression-detector.
+- Added `uat-criteria-validator`: validates user acceptance criteria for specificity, testability, traceability, and happy/failure path coverage; invoked by test-plan-generator, e2e-scenario-builder, pr-preparation.
+
+### Onboarding Agents
+- Added `architecture-decision-navigator`: Read-only onboarding agent that answers "why did we choose X?" by reading ADRs and citing the governing rule files.
+- Added `code-review-learning-mode`: Read-only onboarding agent that converts a code review comment into a teaching moment with the underlying rule, rationale, and real before/after snippets.
+- Added `convention-quick-lookup`: Read-only onboarding agent that returns the canonical "how do we handle X?" answer with `.cursor/rules/*.mdc` citations.
+- Added `good-first-issue-assistant`: Read-only onboarding agent that walks a contributor through claiming a `good-first-issue`, scaffolding the change as a diff, drafting tests, and producing PR submission steps.
+- Added `interactive-codebase-tour`: Read-only onboarding agent that traces a canonical request flow from frontend submission to database and back, citing real files and rules per layer.
+- Added `pattern-catalog`: Read-only onboarding agent that returns real anti-pattern vs. correct-pattern snippets sourced from the repo.
+
+### Rules
+- Added `api-cli`: Flask CLI command conventions (Click, DB sessions, logging, tests).
+- Added `api-constants`: StrEnum, constants modules, and four-tier lookup table patterns.
+- Added `api-logging`: structured logging, level discipline, PII prohibitions, request context.
+- Added `data-privacy`: PII classification, redaction, retention, and third-party handling.
+- Added `docker`: base image pinning, multi-stage builds, non-root users, secret handling.
+- Added `fedramp`: FedRAMP Moderate boundary integrity, audit, crypto, and change-management controls.
+- Added `github-issues`: issue/PR templates, labels, commit style, workflow hardening.
+- Added `makefile`: Makefile task-runner conventions and CI parity.
+- Added `openapi`: spec-from-code, doc metadata, versioning, and linting gates.
+- Added `performance`: DB query discipline, caching, payload size, and rendering budgets.
+- Added `security`: authn/authz, validation, secrets, dependencies, crypto, and security logging.
+
+### Skills
+- Added `skill-impact-analysis`: Read-only blast-radius analysis mapping a change to downstream callers, schema-coupled artifacts, and cross-service contracts with HIGH/MED/LOW risk tags.
+- Added `skill-migration-safety-check`: Lints Alembic migrations for drops, non-null adds without defaults, non-concurrent indexes, type changes, and renames; cross-references audit-log table inventory.
+- Added `skill-openapi-sync`: Detects drift between `api/openapi.generated.yml` and frontend TypeScript types; classifies changes as BREAKING/ADDITIVE/DOC and prints the regeneration command.
+- Added `skill-run-relevant-tests`: Maps changed files to the minimal pytest/Jest targets, executes them, and attributes failures to likely root-cause files.
+- Added `skill-sql-explain`: Static and (opt-in) live `EXPLAIN` analysis of SQL/SQLAlchemy queries with index recommendations and N+1 detection.
+- Added `skill-uat-checklist`: Generates a deterministic UAT sign-off checklist with preconditions, happy paths, edge cases, accessibility, data-handling, cross-browser, rollback, and named approvers.
+- Added `skill-update-translations`: Audits i18n drift across locales, proposes namespaced keys for new JSX strings, and emits a unified diff with `TODO_TRANSLATE` placeholders.
+
+### Hooks
+- Added `pre-commit-pii-scanner`: blocks `git commit` when SSN / email / phone PII is detected in the commit message or staged diff (HHS / FedRAMP).
+- Added `pre-commit-convention-checker`: blocks `git commit` when staged Python / TypeScript files violate hard convention rules (bare except, HTTPException, legacy Column(), inline styles, `: any`, barrel files).
+- Added `background-accessibility-monitor`: advisory WCAG 2.1 AA / Section 508 scan that runs on every frontend `afterFileEdit` and logs findings to `.cursor/hooks/logs/a11y-violations.jsonl` without blocking.
+- Added `background-test-runner`: on `stop`, spawns scoped `pytest` / `npm test` for touched surfaces as detached background jobs, logging to `.cursor/hooks/logs/test-runner.log`.
+- Added `pr-auto-labeler`: on `stop`, uses `gh` CLI to apply area/type labels to the branch's open PR based on touched paths.
+- Added `stale-documentation-detector`: on `afterFileEdit`, warns when documentation referencing the edited source file has not been updated in `STALE_THRESHOLD_DAYS` (default 30).
+
+### Cursor Tooling Prompt Backlog
+- Added `cursor-tooling-prompts/_META_PROMPT.md` as the authoritative 10-section governance contract every per-artifact prompt must follow (Title, Context, Objective, Authoritative References, Files, Exact Specification, Implementation Steps, Documentation Update Requirements, Acceptance Criteria, Out of Scope).
+- Added `cursor-tooling-prompts/_DOCS_AUDIT_HANDOFF.prompt.md` capturing the documentation-audit handoff brief.
+- Rewrote all 88 backlog prompts to the meta-prompt structure across eight categories: **agents (19)**, **rules (16)**, **subagents (11)**, **skills (21)**, **hooks (6)**, **onboarding (6)**, **documentation-tools (5)**, **compliance (4)**.
+- Standardized naming across `cursor-tooling-prompts/` on plain `.md` (no `.prompt.md`, no numeric prefixes). Promoted hand-rewritten content from the `.prompt.md` files in `onboarding/` and `documentation-tools/` into the canonical `<name>.md` files and removed the duplicates; dropped `01-`–`05-` prefixes from `documentation-tools/`. `_META_PROMPT.md` updated to match reality.
+- Added `cursor-tooling-prompts/README.md` as the index of all 88 prompts with per-folder listings and cross-links to `_META_PROMPT.md`.
+- Added `cursor-tooling-prompts/_AUDIT_FINDINGS.md` documenting the 2026-04-07 audit results (no defects in prompt bodies; structural normalizations applied).
+
+### Documentation
+- Updated root `README.md` with a "Cursor Tooling Prompts" section linking the eight backlog categories with verified counts and a recent-changes callout.
+- Added cross-links from `docs/04-auto-activating-rules.md`, `docs/05-agents-reference.md`, and `docs/hooks-reference.md` back to the originating prompt files in `cursor-tooling-prompts/`.
+
 ## v1.1.0 — 2026-04-06
 
 ### Cursor Five-Primitive Migration
