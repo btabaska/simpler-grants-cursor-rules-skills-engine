@@ -3,15 +3,33 @@
 A step-by-step tutorial for first-time setup of the AI coding toolkit for the
 HHS/simpler-grants-gov project.
 
+The toolkit installs into either **Cursor** or **Claude Code** (or both side-by-side). Pick your
+target at install time:
+
+```bash
+./setup.sh                       # interactive — pick 1 (Cursor), 2 (Claude Code), or 3 (both)
+./setup.sh --target=cursor       # cursor only
+./setup.sh --target=claude       # claude code only
+./setup.sh --target=both         # install both
+TOOLKIT_TARGET=claude ./setup.sh # via env var (for CI/non-interactive)
+```
+
+The Cursor and Claude Code installs expose the same agents, skills, slash commands, hooks, and
+MCP servers — only the on-disk file layout differs. See
+[`16-claude-code-vs-cursor.md`](16-claude-code-vs-cursor.md) for the parity matrix.
+
 ---
 
 ## Prerequisites
 
-### 1. Cursor IDE
+### 1. Cursor IDE _or_ Claude Code
 
-Download and install Cursor from [https://cursor.sh](https://cursor.sh). Cursor
-is a fork of VS Code with built-in AI features -- your extensions, themes, and
-keybindings carry over.
+Pick whichever you use:
+
+- **Cursor** — download from [https://cursor.sh](https://cursor.sh). A fork of VS Code with
+  built-in AI features; your extensions, themes, and keybindings carry over.
+- **Claude Code** — install per [the docs](https://docs.claude.com/en/docs/claude-code). Available
+  as a CLI, desktop app, web app, and IDE extensions for VS Code and JetBrains.
 
 ### 2. A Local Clone of HHS/simpler-grants-gov
 

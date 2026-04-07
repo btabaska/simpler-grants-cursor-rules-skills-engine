@@ -15,6 +15,44 @@ Cause** then **Fix** then **Prevention**. For setup help see
 
 ---
 
+## 0. Claude Code target
+
+### Agent or skill not loading
+
+**Symptom:** `claude` doesn't list a `.claude/agents/<name>.md` agent, or a rule-skill never triggers on a matching file edit.
+
+**Likely Cause:** `.claude/` symlink missing in the monorepo, or the generated tree is stale relative to `.cursor/`.
+
+**Fix:**
+1. `ls -la $MONOREPO/.claude` — confirm it's a symlink to the toolkit's `.claude/`.
+2. From the toolkit repo: `python3 scripts/build-claude-target.py --check`. If it reports drift, run `python3 scripts/build-claude-target.py` and re-run setup with `--target=claude`.
+3. Restart `claude`.
+
+### settings.json hooks not firing
+
+**Symptom:** A Cursor hook fires (`afterFileEdit`, `beforeShellExecution`, `stop`) but the equivalent Claude Code hook (`PostToolUse`, `PreToolUse:Bash`, `Stop`) never runs.
+
+**Likely Cause:** Either `.claude/settings.json` isn't being loaded, Bun isn't installed, or you hit one of the three Cursor events with no Claude Code analog (`beforeMCPExecution`, `beforeReadFile`, `beforeSubmitPrompt`).
+
+**Fix:**
+1. `cat $MONOREPO/.claude/settings.json` — confirm a `hooks` block is present with `PreToolUse`/`PostToolUse`/`Stop` entries.
+2. `which bun` — install from [bun.sh](https://bun.sh) if missing.
+3. Check `.claude/hooks/README.md` and [`16-claude-code-vs-cursor.md`](16-claude-code-vs-cursor.md) — the unmappable events are documented there. The script files still ship in `.claude/hooks/` but are not auto-registered.
+
+### MCP server not appearing in Claude Code
+
+**Symptom:** Tools from `simpler-grants-context`, `github`, or `filesystem` are not available in `claude`.
+
+**Likely Cause:** `.mcp.json` symlink missing at the monorepo root, or the custom MCP server hasn't been built.
+
+**Fix:**
+1. `ls -la $MONOREPO/.mcp.json` — confirm symlink to the toolkit's `.mcp.json`.
+2. `ls $TOOLKIT/mcp-server/dist/index.js` — if missing, run `cd mcp-server && npm install && npm run build`.
+3. `echo $GITHUB_PAT` — ensure it's exported for the GitHub server.
+4. Restart `claude` from the monorepo root (not from a subdirectory).
+
+---
+
 ## 1. Setup Issues
 
 ### setup.sh fails / symlinks broken
