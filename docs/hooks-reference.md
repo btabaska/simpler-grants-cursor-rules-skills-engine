@@ -2,7 +2,7 @@
 
 The Simpler Grants AI Coding Toolkit uses Cursor hooks for deterministic quality enforcement. Anything that should happen EVERY time becomes a hook, not just a directive.
 
-> **Source prompts:** The 6 hooks documented below were generated from the prompt backlog under [`cursor-tooling-prompts/hooks/`](../cursor-tooling-prompts/hooks/). Each prompt follows the 10-section contract in [`cursor-tooling-prompts/_META_PROMPT.md`](../cursor-tooling-prompts/_META_PROMPT.md) and is the contract-of-record if this reference and the prompt ever disagree.
+> Hook companion docs live under `documentation/cursor-tooling/hooks/` and the hook implementations live under `.cursor/hooks/`. The companion docs are the source of record when this reference and a hook guide disagree.
 
 ## Architecture
 

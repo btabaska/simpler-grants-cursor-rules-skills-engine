@@ -373,6 +373,106 @@ usage is the best way to find problems.
 
 ---
 
+## 19. "51 agents? Is that a real number or a marketing number?"
+
+It is a real number, and it is the count of files in `.cursor/agents/` — you can
+verify it yourself with `ls .cursor/agents/*.md | wc -l`. The 51 agents are not 51
+different ways of doing the same thing. They are partitioned into four categories:
+
+- **9 original workflow agents** that pre-date the recent expansion (`new-endpoint`,
+  `code-generation`, `test-generation`, `migration`, `i18n`, `adr`, `debugging`,
+  `refactor`, `orchestrator`).
+- **25 extended workflow agents** that each own one specific workflow — preparing a
+  PR, running a codemod, scaffolding a feature flag, drafting a runbook, generating
+  release notes, building an E2E scenario. These are narrow on purpose so they can
+  be chained.
+- **11 quality-gate specialist subagents** that are *not* invoked by users at all.
+  They are called by other agents during the Quality Gate Pipeline. Each one owns
+  one sharp check (PII, accessibility, SQL injection, contract drift, dependency
+  health, etc.).
+- **6 read-only onboarding / learning agents** that never write to the working
+  tree. They exist for orientation and code-reading.
+
+If you want fewer agents, you can ignore the ones you do not need — there is no
+"agent registry" you have to maintain. Each agent is a single Markdown file with a
+slash command and an `@agent-name` invocation. The cost of an unused agent is
+zero.
+
+---
+
+## 20. "Are these agents actually used, or is it just a wall of files?"
+
+A fair question. The honest answer: usage varies. The original 9 workflow agents
+get used daily by anyone writing routes, services, or tests. The extended workflow
+agents have been adopted unevenly — `pr-preparation`, `codemod`, and
+`feature-flag` see frequent use; the compliance agents
+(`fedramp-compliance-checker`, `authority-to-operate-checklist`,
+`privacy-impact-assessment`, `section-508-report-generator`) see use only when a
+relevant artifact is being prepared, which is correct for their scope.
+
+The 11 quality-gate subagents are used on every PR review and on every workflow
+agent run, by virtue of being called by the agents above. So even if you never
+type their name, they are running.
+
+The 6 read-only onboarding agents see the most use during contributor ramp-up,
+and almost no use after the first month. That is the intended life cycle.
+
+If a particular agent is not pulling its weight after a quarter, the right move is
+to delete it from `.cursor/agents/` and the matching slash command from
+`.cursor/commands/`. Nothing depends on agents staying around — they are leaf
+artifacts.
+
+---
+
+## 21. "How do you prevent the rules and agents from drifting out of sync with the codebase?"
+
+Three mechanisms:
+
+1. **The extraction pipeline is repeatable.** `research/extract.py` and
+   `research/refresh.sh` re-pull recent PRs and re-derive rule directives. Rerun
+   them on a quarterly cadence and review the diff. This is the same answer the
+   original FAQ gave, and it is still the primary defense.
+2. **Hooks catch the obvious cases automatically.** The `stale-documentation-detector`
+   hook (in `.cursor/hooks.json`, registered on `afterFileEdit`) warns when an edited
+   source file has docs older than `STALE_THRESHOLD_DAYS`. The
+   `documentation-staleness-detector` quality-gate subagent runs on every PR review
+   and flags drift between code and prose.
+3. **Companion docs in `documentation/cursor-tooling/` are the source of record.**
+   When a numbered doc in `docs/` and a companion doc disagree, the companion doc
+   wins. This means the human-facing prose and the agent/rule definitions are
+   pinned to the same place, not free-floating.
+
+None of these mechanisms is perfect. Drift will happen. The defense is making the
+detection cheap (hooks, subagents) and the correction cheap (extraction pipeline,
+single source of record), not pretending drift will not happen.
+
+---
+
+## 22. "What is the point of the read-only agents? Why not just let any agent be read-only on demand?"
+
+Two reasons.
+
+First, **safety guarantees are clearer when they are file-level**. The read-only
+agents have `readonly: true` in their frontmatter. The Cursor harness enforces
+this — they literally cannot edit a file even if they wanted to. A user invoking
+`@agent-interactive-codebase-tour` does not have to worry that an over-eager turn
+will silently rewrite a config. That is a stronger guarantee than "the agent will
+probably not edit anything" and it costs nothing.
+
+Second, **the prompts are different**. A read-only agent's prompt is structured
+around "trace, explain, cite real files, ask the developer where to drill in." A
+workflow agent's prompt is structured around "pre-flight, generate, run quality
+gates, return the diff." Mixing the two produces an agent that sometimes
+explains, sometimes edits, and is hard to predict. Splitting them keeps each
+agent's behavior reproducible.
+
+If you want a read-only version of a workflow agent for exploratory use, the
+right move is to invoke the matching `skill-explain-*` skill (`skill-explain-codebase-area`,
+`skill-explain-pattern`, `skill-impact-analysis`) — those are the read-only
+analogs.
+
+---
+
 ## Still Skeptical?
 
 That is fine. Skepticism is a professional virtue. If you want to evaluate on your

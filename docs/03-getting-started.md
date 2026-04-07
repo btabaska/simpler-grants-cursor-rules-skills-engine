@@ -308,6 +308,35 @@ or `~/.bashrc`), replacing the placeholder with your actual token, then run
 
 ---
 
+## How to Invoke Each Primitive
+
+Once setup is complete, here is the canonical way to reach each of the five primitives:
+
+| Primitive | Invocation |
+|---|---|
+| **Rule** | Open a file whose path matches the rule's `globs`. The rule loads automatically. You never type the rule name. |
+| **Workflow agent** | Type `/<command-name>` (e.g., `/new-endpoint`, `/codemod`, `/pr-preparation`) or `@agent-<name>` in chat or Composer. |
+| **Quality-gate subagent** | Do **not** invoke directly. They are called by other agents during a Quality Gate Pipeline. If you want one to run standalone, invoke the workflow agent that owns it. |
+| **Read-only onboarding agent** | Type `@agent-interactive-codebase-tour`, `@agent-architecture-decision-navigator`, etc. These never write files. |
+| **Multi-file workflow skill** | `@skill-pr-review`, `@skill-quality-gate`, `@skill-flag-cleanup`, `@skill-onboarding`, or invoke the matching slash command. |
+| **Single-file `skill-*` skill** | `/skill-<name>` (e.g., `/skill-generate-factory`, `/skill-openapi-sync`, `/skill-sql-explain`). |
+| **Hook** | Never invoked directly. The Cursor harness fires the registered command on the configured lifecycle event. |
+
+## How to Add a New Artifact
+
+The toolkit is meant to grow. To add a new artifact of any primitive:
+
+1. **Pick the primitive.** Use the decision rule: deterministic event-driven enforcement → hook; passive context loaded by file glob → rule; multi-step workflow → agent; reusable focused capability → skill; quick named entry point → command.
+2. **Create the file in the right directory** under `.cursor/`:
+   - Rule → `.cursor/rules/<name>.mdc` with `description`, `globs`, and `alwaysApply: false` frontmatter.
+   - Agent → `.cursor/agents/<name>.md` with `name` and `description` frontmatter, then a Pre-Flight Context Loading section, the workflow body, and a Quality Gate Pipeline section.
+   - Skill → `.cursor/skills/<name>/SKILL.md` (and any supporting files in the same directory).
+   - Command → `.cursor/commands/<name>.md` that points at the agent or skill.
+   - Hook → register the script in `.cursor/hooks.json` and place the implementation under `.cursor/hooks/handlers/` or `.cursor/hooks/scripts/`.
+3. **Write the companion prose doc** under `documentation/cursor-tooling/<category>/<name>.md`. This is the human-facing explanation of why the artifact exists, when to use it, and what it produces.
+4. **Add a CHANGELOG Unreleased entry** describing the addition.
+5. **Update the relevant numbered doc** in `docs/` so the inventory stays accurate (rule → 04, agent → 05, skill → skills-reference, hook → hooks-reference).
+
 ## What's Next
 
 Now that you are set up:

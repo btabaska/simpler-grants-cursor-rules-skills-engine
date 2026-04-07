@@ -2,9 +2,7 @@
 
 > **Before reading this:** Familiarity with [How It Works](02-how-it-works.md) is helpful but not required. Each rule entry below is self-contained.
 
-This is the complete reference for all 24 auto-activating rule files in the Simpler Grants toolkit. Each rule is a `.mdc` file that Cursor loads automatically based on the file you are editing.
-
-> **Source prompts:** The 16 most recent rules were generated from the prompt backlog under [`cursor-tooling-prompts/rules/`](../cursor-tooling-prompts/rules/). Each prompt there follows the 10-section contract in [`cursor-tooling-prompts/_META_PROMPT.md`](../cursor-tooling-prompts/_META_PROMPT.md) and is the contract-of-record if this reference and the prompt ever disagree.
+This is the complete reference for all 39 auto-activating rule files in the Simpler Grants toolkit. Each rule is a `.mdc` file under `.cursor/rules/` that Cursor loads automatically based on the file you are editing. The companion prose docs live under `documentation/cursor-tooling/rules/` and are the source of record when this reference and a companion guide disagree.
 
 ---
 
@@ -855,6 +853,76 @@ Note: `api-form-schema.mdc` and `forms-vertical.mdc` both activate for files und
 - Secure cookies, strict CORS, rate limiting
 - Vetted crypto, TLS 1.2+
 - Security events logged without secrets
+
+---
+
+### 37. frontend-storybook.mdc
+
+**Glob pattern:** `frontend/**/*.stories.tsx`, `frontend/**/*.stories.ts`, `frontend/**/*.stories.jsx`, `frontend/.storybook/**/*`
+**Purpose:** Storybook story authoring conventions.
+
+**Key directives:**
+
+- Component Story Format 3 (CSF3) only — `Meta` and `StoryObj` from `@storybook/react`
+- PREFER `args` over custom `render` functions
+- Include accessibility (a11y) stories and visual regression baselines
+- Story file colocated with component
+
+**Companion guide:** `documentation/cursor-tooling/rules/frontend-storybook.md`
+
+---
+
+### 38. frontend-styles.mdc
+
+**Glob pattern:** `frontend/src/styles/**/*.scss`, `frontend/src/**/*.module.scss`, `frontend/src/**/*.scss`
+**Purpose:** SCSS, USWDS theme tokens, breakpoints, and print styles.
+
+**Key directives:**
+
+- Flat global styles directory; no subfolders
+- Modern Sass `@forward` (NEVER legacy `@import`)
+- USWDS theme token overrides over hardcoded values
+- `at-media` mixin for responsive breakpoints
+- Complements `frontend-components.mdc` (markup vs styling split)
+
+**Companion guide:** `documentation/cursor-tooling/rules/frontend-styles.md`
+
+---
+
+### 39. frontend-types.mdc
+
+**Glob pattern:** `frontend/src/**/*.ts`, `frontend/src/**/*.tsx`, `frontend/src/types/**/*`
+**Purpose:** TypeScript type organization for the frontend.
+
+**Key directives:**
+
+- Shared types → `frontend/src/types/<domain>/`; component-local types stay inline or in sibling `Component.types.ts`
+- Promote a type to `src/types/` when imported by 2+ files
+- Distinguish API response types from UI state types in naming
+- Discriminated unions for state machines
+- Ambient/global declarations in `*.d.ts`
+
+**Companion guide:** `documentation/cursor-tooling/rules/frontend-types.md`
+
+---
+
+### 40. frontend-utils.mdc
+
+**Glob pattern:** `frontend/src/utils/**/*.ts`, `frontend/src/utils/**/*.tsx`, `frontend/src/**/*.ts`, `frontend/src/**/*.tsx`
+**Purpose:** Frontend utility extraction and authoring conventions.
+
+**Key directives:**
+
+- INLINE single-use helpers; EXTRACT once used in 2+ files or contains non-trivial logic
+- Pure functions only; edge-runtime safe (no Node-only APIs)
+- Unit tests required for extracted utilities
+- Domain-named files under `frontend/src/utils/`
+
+**Companion guide:** `documentation/cursor-tooling/rules/frontend-utils.md`
+
+---
+
+> **Reference count check.** The toolkit ships **39** auto-activating rule files in `.cursor/rules/`. Each rule above maps to one file. If `ls .cursor/rules/*.mdc | wc -l` reports a different number, this reference is out of date — rerun the inventory step.
 
 ---
 

@@ -167,9 +167,67 @@ Walk through what happens when you type `/new-endpoint Create a GET /v1/agencies
 
 This composition is automatic. You do not need to configure it. The agent does not reference the auto-activating rules -- it does not need to. Cursor loads both, and the AI sees both.
 
+### Pre-Flight Context Loading
+
+Every workflow agent in `.cursor/agents/` opens with a "Pre-Flight Context Loading" section that runs *before* the agent generates anything. The pre-flight loads architectural context from MCP server tools and Compound Knowledge so the agent's first edit is already grounded:
+
+1. `get_conventions_summary()` — top-level project conventions.
+2. `get_rules_for_file(path)` — for each file the agent expects to touch, list the rules that apply.
+3. `get_architecture_section(name)` — pull the relevant numbered section of `documentation/architecture-guide.md`.
+4. Compound Knowledge query — fetch indexed prose docs and ADRs that match the task.
+
+The pre-flight is deterministic: the agent must complete every load step before it is allowed to write a file. If a load fails, the agent reports the failure and stops rather than generating from a partial context. This is what prevents agents from drifting into "I'll just guess what the convention is here" behavior.
+
+### The Quality Gate Pipeline Pattern
+
+After the agent generates code, it runs a multi-gate validation pipeline rather than handing the diff straight to the user. This is the **Quality Gate Pipeline** pattern, defined in `.cursor/skills/quality-gate/SKILL.md` and reused by every workflow agent.
+
+Each gate is a Compound Engineering specialist (or a quality-gate specialist subagent from `.cursor/agents/`). The gates run in a fixed order, with conditional gates added based on the change type:
+
+```
+                        +-------------------------+
+                        | 1. Pre-Flight Context   |
+                        |    (MCP + Compound      |
+                        |     Knowledge)          |
+                        +-----------+-------------+
+                                    |
+                                    v
+                        +-------------------------+
+                        | 2. Generate code        |
+                        |    (agent main body)    |
+                        +-----------+-------------+
+                                    |
+                                    v
+   Gate 1 ----------------> codebase-conventions-reviewer
+        (always runs)             |
+                                  v
+   Gate 2 ----------------> domain specialists (parallel)
+        (varies by agent)         |
+                                  v
+   Gate 3 ----------------> language reviewer
+        (kieran-python or kieran-typescript)
+                                  |
+                                  v
+   Gate 4+ --------------> conditional specialists (parallel)
+        (e.g., security-sentinel for auth changes,
+         pii-leak-detector for log/error edits,
+         data-migration-expert for migrations,
+         accessibility-auditor for UI components)
+                                  |
+                                  v
+                        +-------------------------+
+                        | Findings merged,        |
+                        | agent fixes issues,     |
+                        | re-runs failing gates,  |
+                        | then returns the diff   |
+                        +-------------------------+
+```
+
+If any gate finds a blocker, the agent fixes the issue and re-runs at least the failing gate before presenting output. This means agent-generated code has been validated by multiple expert reviewers before you see it. The pattern is identical across `new-endpoint`, `codemod`, `feature-flag`, `pr-preparation`, and every other workflow agent — only the specific specialists in Gate 2 and Gate 4+ change.
+
 ### Available Agents
 
-The toolkit includes nine agents:
+The toolkit includes 51 agents, grouped into four categories. The original nine workflow agents are:
 
 | Agent | Slash Command | Purpose |
 |---|---|---|
@@ -183,7 +241,7 @@ The toolkit includes nine agents:
 | `debugging` | `/debug` | Investigate errors, stack traces, and failing tests |
 | `refactor` | `/refactor` | Plan and execute multi-file structural changes |
 
-Each agent includes pre-flight MCP context loading and a quality gate pipeline using Compound Engineering specialists.
+Each agent includes pre-flight MCP context loading and a quality gate pipeline using Compound Engineering specialists. The other 42 agents (extended workflow, quality-gate subagents, and read-only onboarding agents) are catalogued in [Agents Reference](05-agents-reference.md).
 
 ---
 

@@ -31,7 +31,10 @@ codebase but lacks judgment.**
 It knows that route decorators follow a specific top-to-bottom order. It knows that
 `db_session` must be the first parameter of service functions. It knows that frontend
 components default to React Server Components. It knows all of this because the toolkit's
-24 domain rules, 6 notepads, and 15 code snippets encode these conventions explicitly.
+39 domain rules, 51 agents, 25 skills, 6 notepads, and 15 code snippets encode these
+conventions explicitly. The agents add a Quality Gate Pipeline on top of the rules so that
+generated code is validated by 11 specialist subagents (PII, accessibility, SQL injection,
+i18n, contract, etc.) before it reaches you.
 
 What it does not know is *when to break the rules*. It cannot tell you whether a new
 feature warrants a new service or should extend an existing one. It cannot evaluate whether
@@ -128,6 +131,18 @@ human reviewers sometimes miss: missing `downgrade()` in migrations, client-side
 server components, raw SQL instead of ORM, missing `@flask_db.with_db_session()`, error
 handling that bypasses `raise_flask_error()`. The AI does not get bored on its fifteenth
 PR review of the day.
+
+### Mechanical Codebase Transformations
+
+With the `codemod` agent and the `skill-*` generators, the AI is reliably good at large-scale mechanical changes: AST-based renames across 5–50 files, import path rewrites, decorator swaps, JSX attribute renames. The codemod agent enforces a clean working tree, plans batches before touching anything, runs scoped tests after each batch, and rolls back on failure. This is in the "good at" tier *only when* the change is purely mechanical — anything requiring semantic judgment is handed off to `@agent-refactor`.
+
+### Compliance, Security, and Privacy Drafting
+
+With the new compliance agents (`fedramp-compliance-checker`, `authority-to-operate-checklist`, `privacy-impact-assessment`, `section-508-report-generator`), the AI is now reliably good at producing first-draft compliance artifacts: NIST 800-53 control mappings, PIA sections, VPAT 2.4 conformance prose, ATO bundles. These drafts are not finished documents — they are scaffolds that capture the structure and the obvious findings so a human can spend their time on the parts that need judgment.
+
+### Multi-Agent Quality Gates
+
+A capability that did not exist in the previous toolkit version: every workflow agent now runs a Quality Gate Pipeline that fans out to specialist subagents (PII, accessibility, SQL injection, contract, dependency health, test quality, i18n completeness, etc.). This is what makes generated code feel pre-reviewed rather than pre-typed. See [How It Works](02-how-it-works.md#the-quality-gate-pipeline-pattern).
 
 ---
 

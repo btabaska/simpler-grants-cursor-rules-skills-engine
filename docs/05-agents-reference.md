@@ -2,7 +2,16 @@
 
 # Agents Reference
 
-> **Source prompts:** The 19 multi-step agents and 11 specialist subagents documented below were generated from the prompt backlog under [`cursor-tooling-prompts/agents/`](../cursor-tooling-prompts/agents/) and [`cursor-tooling-prompts/subagents/`](../cursor-tooling-prompts/subagents/). Each prompt follows the 10-section contract in [`cursor-tooling-prompts/_META_PROMPT.md`](../cursor-tooling-prompts/_META_PROMPT.md) and is the contract-of-record if this reference and the prompt ever disagree.
+The toolkit ships **51 agents** under `.cursor/agents/`. They fall into four categories:
+
+| Category | Count | Examples |
+|---|---|---|
+| Original workflow agents | 9 | `orchestrator`, `new-endpoint`, `code-generation`, `test-generation`, `migration`, `i18n`, `adr`, `debugging`, `refactor` |
+| Extended workflow agents | 25 | `pr-preparation`, `codemod`, `feature-flag`, `api-docs-sync`, `dependency-update`, `incident-response`, `runbook-generator`, `release-notes-drafter`, `changelog-generator`, `regression-detector`, `performance-audit`, `e2e-scenario-builder`, `visual-regression`, `test-plan-generator`, `load-test-generator`, `user-guide-updater`, `glossary-auto-updater`, `sprint-summary-generator`, `technical-rfc-template`, `adr-from-pr`, `good-first-issue`, `contributor-onboarding`, `authority-to-operate-checklist`, `fedramp-compliance-checker`, `privacy-impact-assessment`, `section-508-report-generator` |
+| Quality-gate specialist subagents (invoked by other agents) | 11 | `accessibility-auditor`, `api-contract-checker`, `dependency-health-reviewer`, `documentation-staleness-detector`, `form-schema-validator`, `i18n-completeness-checker`, `pii-leak-detector`, `responsive-design-checker`, `sql-injection-scanner`, `test-quality-analyzer`, `uat-criteria-validator` |
+| Read-only onboarding / learning agents | 6 | `architecture-decision-navigator`, `code-review-learning-mode`, `convention-quick-lookup`, `good-first-issue-assistant`, `interactive-codebase-tour`, `pattern-catalog` |
+
+Companion prose guides for these agents live under `documentation/cursor-tooling/agents/` and `documentation/cursor-tooling/subagents/` and are the source of record when this reference and a companion guide disagree.
 
 ## What Are Agents?
 

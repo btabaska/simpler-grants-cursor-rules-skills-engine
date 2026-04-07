@@ -1,6 +1,8 @@
 # Notepads Reference
 
 > **Before reading this:** Read [Getting Started](03-getting-started.md) to ensure your toolkit is set up.
+>
+> **Looking for skills?** Notepads attach passive context to a conversation. If you want a focused, reusable capability that *does* something (generate a factory, run a contract test, audit a feature flag), see the [Skills Reference](skills-reference.md) — the toolkit ships 25 skills under `.cursor/skills/`.
 
 Notepads are pre-written context documents stored in `.cursor/notepads/` that you can reference in Cursor chat by typing `@notepad-name`. They provide background knowledge -- project architecture, coding patterns, checklists -- so you don't have to type it all out every time you start a conversation. This project includes six notepads, each focused on a specific domain.
 

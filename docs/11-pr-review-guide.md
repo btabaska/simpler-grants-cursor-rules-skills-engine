@@ -295,6 +295,30 @@ When the diff includes files matching `**/form*/**/*`, the AI enforces `forms-ve
 
 ---
 
+## Quality-Gate Review Subagents
+
+The PR review skill is now backed by 11 specialist review subagents in `.cursor/agents/`. These are not invoked directly by users — they are called by the PR review workflow (and by other workflow agents) as quality gates. Each one owns a single sharp check.
+
+| Subagent | What it checks | Where it fits in the review |
+|---|---|---|
+| `accessibility-auditor` | WCAG 2.1 AA / Section 508 violations in React/Next.js components, HTML, and form schemas | Runs on any PR that touches `frontend/src/components/`, `frontend/src/app/`, or form schemas. Findings emit `a11y:` severity. |
+| `api-contract-checker` | Agreement between APIFlask handlers, Marshmallow schemas, and the committed OpenAPI spec — paths, methods, params, request/response bodies, status codes, auth | Runs on any PR that touches `api/src/api/**/*_routes.py` or `api/src/api/**/*_schemas.py`. Findings are usually `bug:` if the spec drifts. |
+| `dependency-health-reviewer` | Transitive regressions, duplicate installs, license drift against the CC0 / open-source policy, known CVEs | Runs on any PR that touches `pyproject.toml`, `uv.lock`, `package.json`, `package-lock.json`. |
+| `documentation-staleness-detector` | Drift between code changes and prose docs — README sections, markdown guides, inline docstrings, ADRs, example snippets | Runs on any PR. Emits `suggestion:` severity for stale references. |
+| `form-schema-validator` | Three-schema form (JSON Schema, UI Schema, Rule Schema) structural validity, cross-schema consistency, alignment with Grants.gov XML serialization | Runs on any PR that touches `api/src/form_schema/` or `frontend/src/components/forms/`. |
+| `i18n-completeness-checker` | Every user-facing string is wrapped in a translation function, present in every locale bundle, with no hardcoded English fallbacks | Runs on any PR that touches `frontend/src/i18n/` or adds JSX with literal text. |
+| `pii-leak-detector` | Personally identifiable information, secrets, tokens, FedRAMP-sensitive data in diffs, logs, fixtures, docs, post-mortems | Runs on every PR. Findings are `bug:` severity and block merge. |
+| `responsive-design-checker` | Components render across USWDS breakpoints, honor mobile-first layout rules, no horizontal scroll or clipped interactive targets | Runs on any PR that touches frontend components or styles. |
+| `sql-injection-scanner` | String-interpolated SQL, unsafe `text()` usage, ORM escape hatches that bypass parameterization | Runs on any PR that touches `api/src/db/` or `api/src/services/`. Findings are `bug:` severity. |
+| `test-quality-analyzer` | Meaningful assertions, `factory_boy` / `jest-axe` compliance, appropriate mocking, absence of flaky-test anti-patterns | Runs on any PR that touches `api/tests/` or `frontend/tests/`. |
+| `uat-criteria-validator` | User acceptance criteria are specific, testable, traceable to requirements, and cover both happy and failure paths | Runs on PRs with linked test plans, E2E scenarios, or acceptance criteria in the description. |
+
+The PR review skill picks which subagents fan out based on the dispatch table at the top of this guide. A small frontend-only PR fans out to `accessibility-auditor`, `responsive-design-checker`, `i18n-completeness-checker`, `test-quality-analyzer`, and `pii-leak-detector` in parallel. A backend migration PR fans out to `sql-injection-scanner`, `documentation-staleness-detector`, `pii-leak-detector`, and `test-quality-analyzer`. The fan-out is what makes the review feel proportional to the change rather than a one-size-fits-all checklist.
+
+The full specialist map lives in `.cursor/skills/quality-gate/specialist-map.md`.
+
+---
+
 ## Limitations of AI Review
 
 ### What It Catches Well

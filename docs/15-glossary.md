@@ -26,7 +26,7 @@ file-context scoping. See [Agents Reference](05-agents-reference.md).
 
 ### Auto-activating rule
 A Cursor rule stored as a `.mdc` file that fires automatically when the developer
-opens or edits a file matching a configured glob pattern. The toolkit ships 18
+opens or edits a file matching a configured glob pattern. The toolkit ships 39
 auto-activating rules. See [Auto-Activating Rules](04-auto-activating-rules.md).
 
 ### Blueprint (Flask)
@@ -204,6 +204,41 @@ custom implementations. See
 A structured error object in API validation responses containing `type` (from
 `ValidationErrorType`), `message`, and `field`. Always used with `raise_flask_error()`.
 See [Auto-Activating Rules](04-auto-activating-rules.md#5-api-validationmdc).
+
+### Quality Gate Pipeline
+The shared multi-gate validation pipeline defined in
+`.cursor/skills/quality-gate/SKILL.md` and reused by every workflow agent. After
+generating code, an agent runs Gate 1 (convention compliance), Gate 2
+(domain-specific specialists), Gate 3 (language reviewer), and any conditional
+Gate 4+ specialists (PII, accessibility, security, etc.) before returning the
+diff. See [How It Works](02-how-it-works.md#the-quality-gate-pipeline-pattern).
+
+### Pre-Flight Context Loading
+The deterministic context-load step at the top of every workflow agent. The agent
+calls `get_conventions_summary()`, `get_rules_for_file()`,
+`get_architecture_section()`, and Compound Knowledge before it is allowed to
+generate or edit anything. See
+[How It Works](02-how-it-works.md#pre-flight-context-loading).
+
+### Specialist subagent
+A reviewer agent in `.cursor/agents/` whose `description` begins "Specialist
+reviewer subagent. Invoked BY OTHER AGENTS." These 11 subagents are not invoked
+directly by users — they are called as quality gates by other workflow agents.
+Examples: `pii-leak-detector`, `accessibility-auditor`, `sql-injection-scanner`.
+See [Agents Reference](05-agents-reference.md).
+
+### Blast radius
+The set of files, modules, and downstream consumers affected by a proposed
+change. The `flag-cleanup` skill includes a `blast-radius-template.md` that
+forces a written impact assessment before any feature-flag deletion. The
+`skill-impact-analysis` skill produces a blast-radius report on demand. See
+[Skills Reference](skills-reference.md).
+
+### Cleanup tracker
+The artifact maintained by `@agent-feature-flag` that records every flag, its
+owner, its rollout state, and its planned cleanup date. The tracker is what
+`@agent-flag-cleanup` and `/skill-feature-flag-audit` consult to surface
+flags that are stale or ready for removal.
 
 ### raise_flask_error()
 The project's standard function for HTTP error responses, replacing raw Flask `abort()`.

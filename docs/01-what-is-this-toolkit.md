@@ -35,40 +35,59 @@ Consider what happens when a developer needs to add a new API endpoint. They nee
 
 ## What the Toolkit Provides
 
-The toolkit has nine component types, each addressing a different aspect of the problem.
+The toolkit is organized as a **five-primitive system**. Every artifact in `.cursor/` belongs to exactly one of these primitives, and every primitive has a single activation model:
 
-### 24 Auto-Activating Domain Rules
+1. **Rules** (`.cursor/rules/*.mdc`) — passive context, auto-loaded by file glob.
+2. **Agents** (`.cursor/agents/*.md`) — multi-step workflows, invoked by slash command, `@agent-name`, or by another agent as a quality-gate subagent.
+3. **Skills** (`.cursor/skills/*/SKILL.md`) — reusable capabilities, invoked by agents or directly.
+4. **Commands** (`.cursor/commands/*.md`) — slash-command entry points that bind a name to an agent or skill.
+5. **Hooks** (`.cursor/hooks.json` + `.cursor/hooks/`) — deterministic, event-driven enforcement that runs without the AI choosing to.
+
+The sections below walk each primitive in turn, plus three supporting layers (notepads, code snippets, MCP servers) that pre-date the five-primitive system but still ship with the toolkit.
+
+### 39 Auto-Activating Domain Rules
 
 These are `.mdc` files in `.cursor/rules/` that activate automatically based on the file you are editing. When you open a file matching `api/src/api/**/*.py`, the `api-routes.mdc` rule loads and tells the AI about decorator stack ordering, blueprint organization, thin route handlers, and the project's specific patterns — complete with code examples extracted from actual merged PRs.
 
-The 24 rules cover the full stack: `api-routes`, `api-services`, `api-database`, `api-auth`, `api-validation`, `api-error-handling`, `api-form-schema`, `api-tests`, `api-adapters`, `api-search`, `api-tasks`, `api-workflow` on the backend; `frontend-components`, `frontend-hooks`, `frontend-services`, `frontend-i18n`, `frontend-tests`, `frontend-app-pages`, `frontend-e2e-tests`, `accessibility` on the frontend; plus `infra`, `ci-cd`, `cross-domain`, and `forms-vertical` for infrastructure, pipelines, shared conventions, and the forms subsystem respectively.
+The 39 rules cover the full stack: `api-routes`, `api-services`, `api-database`, `api-auth`, `api-validation`, `api-error-handling`, `api-form-schema`, `api-tests`, `api-adapters`, `api-search`, `api-tasks`, `api-workflow` on the backend; `frontend-components`, `frontend-hooks`, `frontend-services`, `frontend-i18n`, `frontend-tests`, `frontend-app-pages`, `frontend-e2e-tests`, `accessibility` on the frontend; plus `infra`, `ci-cd`, `cross-domain`, and `forms-vertical` for infrastructure, pipelines, shared conventions, and the forms subsystem respectively.
 
 Each rule contains concrete directives like "ALWAYS use `raise_flask_error()` instead of raising raw HTTP exceptions" and "NEVER import client-side hooks in React Server Components," backed by references to the PRs where those patterns were established or enforced.
 
 You do not need to memorize which rules exist or when they apply. Cursor reads the `globs` field in each `.mdc` file and loads the relevant rules automatically when you open a matching file. Edit a file in `api/src/api/`, and the API rules are silently loaded. Edit a file in `front/src/`, and the frontend rules activate instead. The AI's behavior changes based on context without any manual configuration.
 
-### 9 Standalone Agents
+### 51 Agents
 
 Agents are Cursor subagents in `.cursor/agents/` that orchestrate multi-step workflows. Unlike auto-activating rules that provide passive context, agents actively guide the AI through a sequence of file creation and modification steps.
 
 The `new-endpoint` agent, for example, asks you for a domain name, endpoint path, HTTP methods, and auth requirements, then walks the AI through creating the blueprint file, route handler, request/response schemas, service layer function, database queries, and tests — all following the project's conventions. The `test-generation` agent understands the difference between `pytest` patterns on the backend (factory `.build()` vs `.create()`, `db_session` fixtures) and Jest/Playwright patterns on the frontend (jest-axe accessibility checks, `render()` utilities).
 
-The full set: `orchestrator` (task routing), `new-endpoint`, `code-generation`, `test-generation`, `migration`, `i18n`, `adr`, `debugging`, and `refactor`.
+The 51 agents fall into four categories:
+
+- **9 original workflow agents** — `orchestrator`, `new-endpoint`, `code-generation`, `test-generation`, `migration`, `i18n`, `adr`, `debugging`, `refactor`.
+- **25 extended workflow agents** — `pr-preparation`, `codemod`, `feature-flag`, `api-docs-sync`, `dependency-update`, `incident-response`, `runbook-generator`, `release-notes-drafter`, `changelog-generator`, `regression-detector`, `performance-audit`, `e2e-scenario-builder`, `visual-regression`, `test-plan-generator`, `load-test-generator`, `user-guide-updater`, `glossary-auto-updater`, `sprint-summary-generator`, `technical-rfc-template`, `adr-from-pr`, `good-first-issue`, `contributor-onboarding`, `authority-to-operate-checklist`, `fedramp-compliance-checker`, `privacy-impact-assessment`, `section-508-report-generator`.
+- **11 quality-gate specialist subagents** — `accessibility-auditor`, `api-contract-checker`, `dependency-health-reviewer`, `documentation-staleness-detector`, `form-schema-validator`, `i18n-completeness-checker`, `pii-leak-detector`, `responsive-design-checker`, `sql-injection-scanner`, `test-quality-analyzer`, `uat-criteria-validator`. These are not invoked directly by users — they are called as quality gates by other agents.
+- **6 read-only onboarding / learning agents** — `architecture-decision-navigator`, `code-review-learning-mode`, `convention-quick-lookup`, `good-first-issue-assistant`, `interactive-codebase-tour`, `pattern-catalog`. These never modify the working tree.
 
 To invoke an agent, use the corresponding slash command (e.g., `/new-endpoint`, `/debug`, `/refactor`) or reference it by name in Cursor chat. The agent file contains the full workflow instructions, so the AI knows which questions to ask and which steps to follow.
 
-### 4 Skills
+### 25 Skills
 
-Skills are reusable capabilities with their own directories in `.cursor/skills/`, each containing a `SKILL.md` and supporting files. Unlike agents that orchestrate multi-step workflows, skills encapsulate focused capabilities that can be invoked standalone or called by agents.
+Skills are reusable capabilities under `.cursor/skills/`, each containing a `SKILL.md` and (sometimes) supporting files. Unlike agents that orchestrate multi-step workflows, skills encapsulate focused capabilities that can be invoked standalone or called by agents.
 
-- **PR Review** — structured code review with a dispatch table, specialist passes, severity classification, and a style guide
-- **Quality Gate Pipeline** — multi-gate validation using Compound Engineering specialists, run by all agents after code generation
-- **Feature Flag Cleanup** — workflow for safely removing fully-rolled-out feature flags across all surfaces
-- **Developer Onboarding** — guided onboarding for new developers joining the project
+The toolkit ships **4 multi-file workflow skills**:
 
-### 12 Slash Commands
+- **PR Review** (`pr-review/`) — structured code review with a dispatch table, severity guide, voice guide, and checklist template
+- **Quality Gate Pipeline** (`quality-gate/`) — multi-gate validation using Compound Engineering specialists, run by all agents after code generation; includes a specialist map, gate checklist, and parallel-execution guide
+- **Feature Flag Cleanup** (`flag-cleanup/`) — workflow for safely removing fully-rolled-out feature flags, with a cleanup checklist and blast-radius template
+- **Developer Onboarding** (`onboarding/`) — guided onboarding with setup checklist, architecture tour, and first-PR guide
 
-Slash commands in `.cursor/commands/` provide quick invocation entry points: `/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`, `/check-conventions`, `/tooling-health-check`, `/explain-architecture`.
+Plus **21 single-file `skill-*` skills** for focused, repeatable tasks: `skill-accessibility-check`, `skill-api-contract-test`, `skill-bundle-size-check`, `skill-check-conventions`, `skill-cross-browser-checklist`, `skill-dead-code-finder`, `skill-diff-summary`, `skill-explain-codebase-area`, `skill-explain-pattern`, `skill-feature-flag-audit`, `skill-generate-factory`, `skill-generate-mock`, `skill-generate-story`, `skill-generate-test-data`, `skill-impact-analysis`, `skill-migration-safety-check`, `skill-openapi-sync`, `skill-run-relevant-tests`, `skill-sql-explain`, `skill-uat-checklist`, `skill-update-translations`.
+
+See the [Skills Reference](skills-reference.md) for invocation details and use cases.
+
+### 64 Slash Commands
+
+Slash commands in `.cursor/commands/` provide quick invocation entry points. The toolkit ships one command per agent and one per `skill-*`, plus the original 12 commands (`/debug`, `/refactor`, `/new-endpoint`, `/generate`, `/test`, `/migration`, `/i18n`, `/adr`, `/review-pr`, `/check-conventions`, `/tooling-health-check`, `/explain-architecture`). The full command set is one-to-one with the agent and skill catalogs in `.cursor/agents/` and `.cursor/skills/`.
 
 ### 6 Hook Lifecycle Events
 
@@ -158,10 +177,10 @@ For quick reference, here is everything in the toolkit:
 
 | Component | Count | Location | Activation |
 |-----------|-------|----------|------------|
-| Auto-activating rules | 24 | `.cursor/rules/*.mdc` | Automatic (file glob match) |
-| Standalone agents | 9 | `.cursor/agents/*.md` | Slash command or `@agent-name` |
-| Skills | 4 | `.cursor/skills/*/SKILL.md` | Invoked by agents or directly |
-| Slash commands | 12 | `.cursor/commands/*.md` | `/command-name` in chat |
+| Auto-activating rules | 39 | `.cursor/rules/*.mdc` | Automatic (file glob match) |
+| Agents (workflow + subagents + onboarding) | 51 | `.cursor/agents/*.md` | Slash command, `@agent-name`, or invoked by another agent |
+| Skills | 25 | `.cursor/skills/*/SKILL.md` | Invoked by agents or directly |
+| Slash commands | 64 | `.cursor/commands/*.md` | `/command-name` in chat |
 | Hook lifecycle events | 6 | `.cursor/hooks.json` | Automatic (event-driven) |
 | Notepads | 6 | `.cursor/notepads/*.md` | Attach to conversation |
 | Code snippets | 15 | `.cursor/snippets/*.code-snippets` | Tab-completion (`sgg-` prefix) |

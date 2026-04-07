@@ -4,6 +4,8 @@ This is the reference library for the AI coding toolkit used by the [HHS/simpler
 
 The toolkit gives Cursor IDE project-specific knowledge extracted from 1,459 merged pull requests — so instead of generic Python or TypeScript suggestions, the AI understands your team's actual conventions.
 
+The toolkit is built from five primitives: **39 auto-activating rules**, **51 agents** (workflow + quality-gate subagents + onboarding), **25 skills**, **64 slash commands**, and **6 hook lifecycle events** (with 20+ handlers and standalone scripts).
+
 ---
 
 ## Prerequisites
@@ -50,10 +52,11 @@ Choose your path based on where you are:
 | 01 | [What Is This Toolkit?](01-what-is-this-toolkit.md) | Overview of every component, how it was built, and what it is not |
 | 02 | [How It Works](02-how-it-works.md) | Technical deep dive into rules, agents, MCP servers, and the PR review skill |
 | 03 | [Getting Started](03-getting-started.md) | Step-by-step setup, verification exercises, and first-use tutorial |
-| 04 | [Auto-Activating Rules](04-auto-activating-rules.md) | Complete reference for all 24 rule files with examples |
-| 05 | [Agents Reference](05-agents-reference.md) | Deep reference for every agent: when to use, how to invoke, example prompts |
+| 04 | [Auto-Activating Rules](04-auto-activating-rules.md) | Complete reference for all 39 rule files with examples |
+| 05 | [Agents Reference](05-agents-reference.md) | Deep reference for the 51 agents: workflow agents, quality-gate subagents, and onboarding agents |
 | 06 | [Notepads Reference](06-notepads-reference.md) | When and how to use each notepad with example prompts |
 | 07 | [Code Snippets Reference](07-code-snippets-reference.md) | All 15 snippets with generated code examples |
+| — | [Skills Reference](skills-reference.md) | All 25 skills (4 multi-file workflow skills + 21 single-file `skill-*` skills) |
 | 08 | [Prompt Engineering](08-prompt-engineering.md) | How to write effective prompts, with 10+ before/after comparisons |
 | 09 | [Workflow Examples](09-workflow-examples.md) | 6 end-to-end annotated scenarios showing real development tasks |
 | 10 | [Multi-File Workflows](10-multi-file-workflows.md) | Chat vs. Composer, complex multi-file changes, large refactors |
@@ -83,7 +86,7 @@ Choose your path based on where you are:
 
 ```
 .cursor/
-├── rules/                              # 24 auto-activating domain rules
+├── rules/                              # 39 auto-activating domain rules
 │   ├── accessibility.mdc              # WCAG 2.1 AA, Section 508 compliance
 │   ├── api-adapters.mdc               # External service adapter patterns
 │   ├── api-auth.mdc                    # JWT + API key multi-auth patterns
@@ -108,7 +111,7 @@ Choose your path based on where you are:
 │   ├── frontend-services.mdc        # requesterForEndpoint(), server-only
 │   ├── frontend-tests.mdc           # jest-axe, Playwright E2E
 │   └── infra.mdc                    # Three-layer Terraform architecture
-├── agents/                            # 9 standalone agents
+├── agents/                            # 51 agents (9 original + 25 extended workflow + 11 quality-gate subagents + 6 onboarding)
 │   ├── orchestrator.md                # Task routing to specialist agents
 │   ├── new-endpoint.md               # Complete API endpoint generation
 │   ├── code-generation.md            # Domain-aware code generation
@@ -118,15 +121,13 @@ Choose your path based on where you are:
 │   ├── adr.md                        # Architecture Decision Records
 │   ├── debugging.md                  # Error investigation and root cause analysis
 │   └── refactor.md                   # Multi-file structural changes
-├── skills/                            # 4 reusable skills
+├── skills/                            # 25 skills (4 multi-file workflow skills + 21 single-file skill-*)
 │   ├── pr-review/                    # Comprehensive PR review
 │   ├── quality-gate/                 # Multi-gate specialist validation
 │   ├── flag-cleanup/                 # Feature flag removal workflow
-│   └── onboarding/                   # Developer onboarding
-├── commands/                          # 12 slash commands
-│   ├── debug.md, refactor.md, new-endpoint.md, generate.md, test.md,
-│   │   migration.md, i18n.md, adr.md, review-pr.md, check-conventions.md,
-│   │   tooling-health-check.md, explain-architecture.md
+│   ├── onboarding/                   # Developer onboarding
+│   └── skill-*/                      # 21 focused single-file skills (factory, mock, story, openapi-sync, sql-explain, etc.)
+├── commands/                          # 64 slash commands (one per agent + skill)
 ├── hooks.json                         # 6 hook lifecycle events
 ├── hooks/                             # Hook dispatchers and handlers
 │   ├── dispatchers/                  # Event dispatchers (TypeScript/Bun)

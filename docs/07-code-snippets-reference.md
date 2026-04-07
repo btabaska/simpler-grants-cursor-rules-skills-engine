@@ -1,6 +1,8 @@
 # Code Snippets Reference
 
 > **Before reading this:** Ensure your toolkit is set up per [Getting Started](03-getting-started.md). Snippets require the `.cursor/snippets/` directory to be symlinked.
+>
+> **Need more than a scaffold?** Snippets give you static skeletons triggered by tab-completion. If you want a generator that knows about the surrounding code (factories, mocks, stories, test data, OpenAPI sync), see the [Skills Reference](skills-reference.md) — the toolkit ships 25 skills, including `skill-generate-factory`, `skill-generate-mock`, `skill-generate-story`, and `skill-generate-test-data`.
 
 Code snippets are triggered by typing a prefix (like `sgg-route`) in a code file. Cursor shows the snippet in autocomplete, and selecting it inserts a project-specific code template with tabstop placeholders you can fill in.
 

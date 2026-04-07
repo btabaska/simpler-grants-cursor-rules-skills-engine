@@ -2,7 +2,7 @@
 
 # Workflow Examples
 
-Six complete development scenarios showing every prompt the developer types, what the AI produces, where codebase rules shaped the output, and where the developer needed to step in and correct course. These are not idealized demos -- they show the realistic back-and-forth of working with AI-assisted tooling on this project.
+Nine complete development scenarios showing every prompt the developer types, what the AI produces, where codebase rules shaped the output, and where the developer needed to step in and correct course. These are not idealized demos -- they show the realistic back-and-forth of working with AI-assisted tooling on this project.
 
 ### How to Read These Scenarios
 
@@ -568,6 +568,113 @@ Scenario 5 caught two convention violations and one style issue that would have 
 | Understanding unfamiliar code | Notepad + conversation | Provides orientation before diving into specifics |
 
 Using the wrong tool is not catastrophic, but using the right one produces better results with fewer corrections needed.
+
+---
+
+## Scenario 7: PR Preparation with `@agent-pr-preparation`
+
+**Context:** A developer has finished a branch that adds a new endpoint and a small frontend change. They think they're done, but they want to catch convention violations, missing tests, and a sloppy PR title before opening the PR for human review.
+
+### Turn 1 — Developer invokes the agent on the branch
+
+```
+@agent-pr-preparation prepare this branch for PR
+```
+
+The agent's Pre-Flight loads the cross-cutting conventions, runs `git status` and `git diff main...HEAD` to enumerate touched files, and calls `get_rules_for_file()` for each one. It then walks its procedure:
+
+1. **Test selection.** It runs scoped tests via `skill-run-relevant-tests` — only the API and frontend test surfaces that touch the changed files. The pytest run flags one new endpoint that has no integration test.
+2. **Convention sweep.** It calls `skill-check-conventions` across the diff. Two findings: a `print(...)` in a service file (`cross-domain.mdc` violation) and a missing `jest-axe` assertion in a new component test (`accessibility.mdc` violation).
+3. **PII sweep.** It invokes `pii-leak-detector` against the diff. Clean.
+4. **Title and description.** It checks the branch name against the `[Issue N] Description` format from `github-issues.mdc`, then drafts a PR description using the `pr-preparation` template — summary, screenshots placeholder, accessibility notes, privacy notes, and a self-review checklist.
+
+### Turn 2 — Developer reviews the report
+
+The agent returns a structured report:
+
+> **Blockers (must fix before PR):**
+> - `bug:` `api/src/services/notifications/notification_service.py:42` uses `print(...)` instead of structured logging. Per `cross-domain.mdc`, use `logger.info("Notification dispatched", extra={"notification_id": notification.notification_id})`.
+> - `testing:` `frontend/tests/components/NotificationBanner.test.tsx` is missing the `jest-axe` accessibility assertion required by `frontend-tests.mdc`.
+> - `testing:` `api/src/api/notifications_v1/notification_routes.py` has no integration test in `api/tests/api/notifications_v1/`.
+>
+> **Non-blocking suggestions:**
+> - `nit:` Branch name `add-notifications` does not match `[Issue N] Description`. Consider renaming to `[1234] Add notification dispatch endpoint`.
+>
+> **Drafted PR description:** _(full markdown body, ready to paste into the PR template)_
+
+> **Why the agent caught this and a `git push` would not.** The blockers are exactly the kind of things human reviewers spend their time on — and exactly the kind of things that make a PR bounce. Catching them before push means the human reviewer gets to focus on business logic instead of lint.
+
+### Reflection
+
+The agent does not push, does not commit, and does not edit files directly. It produces a checklist. The developer fixes the three blockers, runs the agent again to confirm, and then opens the PR by hand.
+
+---
+
+## Scenario 8: `/codemod` — Rename a Method Across 12 Files
+
+**Context:** The team has decided to rename `Application.is_submitted` to `Application.has_been_submitted` to match the boolean naming convention in `cross-domain.mdc`. The attribute is referenced in 12 files across the API and tests. A manual rename would be tedious and error-prone.
+
+### Turn 1 — Developer invokes the codemod
+
+```
+/codemod Rename Application.is_submitted to Application.has_been_submitted across api/src/ and api/tests/
+```
+
+The agent's Pre-Flight runs:
+
+1. `get_architecture_section("api")` and `get_rules_for_file()` for `api/src/db/`, `api/src/services/`, `api/src/api/`, `api/tests/`.
+2. Verifies `libcst` is importable.
+3. Verifies the working tree is clean. **It is not — the developer has uncommitted changes in a frontend file.** The agent refuses:
+
+> I won't run a codemod against a dirty working tree — rollback requires a clean base. Please commit or stash your frontend changes and re-invoke.
+
+### Turn 2 — Developer stashes and re-invokes
+
+```
+git stash push -m "wip frontend"
+/codemod Rename Application.is_submitted to Application.has_been_submitted across api/src/ and api/tests/
+```
+
+Now the agent proceeds:
+
+1. **Discover.** `rg --files-with-matches "is_submitted" api/src/ api/tests/` returns 12 files. The agent reports the count and groups them by nearest common parent.
+2. **Plan batches.** Two batches: 7 files in `api/src/` (model + service + routes), 5 files in `api/tests/`. Presents the plan for confirmation.
+3. **Write codemod script.** A small `libcst.CSTTransformer` that renames the attribute access and the `Mapped[bool]` column. Saved to `.cursor/tmp/codemods/rename-is-submitted.py`. The agent shows the script to the developer.
+4. **Execute batch 1.** Apply, run `ruff format` on the touched files, then `uv run pytest api/tests/api/applications_v1/ -x --no-header -q`. Tests pass. Fixup commit `codemod(applications): batch 1/2`.
+5. **Execute batch 2.** Apply to test files, run the broader `make test-api` to confirm. Passes. Fixup commit `codemod(applications): batch 2/2`.
+6. **Summary.** "Renamed `Application.is_submitted` to `Application.has_been_submitted` across 12 files in 2 batches. 2 fixup commits. Test surface clean. The Alembic migration to rename the column is *not* part of this codemod — invoke `@agent-migration` if you also need a DB rename."
+
+### Reflection
+
+The codemod agent is intentionally narrow: it does AST renames, not column renames. It hand-offs the part that requires judgment (the migration) to the agent that owns it. This is the "hand off, not heroics" principle from the prompt-engineering guide.
+
+---
+
+## Scenario 9: `@agent-interactive-codebase-tour` for a New Contributor
+
+**Context:** A new developer is on day two and needs to understand how a form submission flows from the frontend through the API to the database and back. They invoke the read-only tour agent.
+
+### Turn 1 — Developer asks for the form-submission tour
+
+```
+@agent-interactive-codebase-tour Trace what happens when a user submits the SF-424 form.
+```
+
+The agent's Pre-Flight loads `architecture-overview`, `forms-vertical.mdc`, `frontend-app-pages.mdc`, `api-form-schema.mdc`, and the relevant section of the architecture guide. Then it walks the developer through the request:
+
+1. **Frontend page.** "The form lives in `frontend/src/app/applications/[applicationId]/forms/[formId]/page.tsx`. It's a Server Component that fetches the form schema and any saved answers via `requesterForEndpoint` (rule: `frontend-services.mdc`)."
+2. **Form rendering.** "The three-schema form (JSON schema, UI schema, Rule schema) is defined in `api/src/form_schema/forms/sf424/` and rendered by `frontend/src/components/forms/JsonSchemaForm.tsx`. See rule `forms-vertical.mdc`."
+3. **Submission.** "Clicking Submit posts to `POST /v1/applications/{application_id}/forms/{form_id}` (file `api/src/api/applications_v1/application_form_routes.py`). The route is thin (`api-routes.mdc`) and delegates to `submit_application_form` in `api/src/services/applications/application_form_service.py`."
+4. **Validation.** "The service validates against `OUR_VALIDATOR` (custom JSON Schema validator from `api-form-schema.mdc`), persists the answers to `application_form` and `application_form_answer` tables, and emits a `form_submitted` event for downstream processing."
+5. **Response.** "The route returns `response.ApiResponse(message='Form submitted', data=...)` and the frontend redirects to the application overview page."
+
+After each step, the agent pauses and asks: "Want to dig into any of these layers, or keep going to the next one?"
+
+### Reflection
+
+The tour agent never edits files. It is read-only by design (`readonly: true` in its frontmatter). It cites real files at every step, references the rule that enforces the convention being shown, and offers to drill in. This is the "knowledgeable junior developer who has memorized every convention" mental model from the [Capabilities and Limitations](12-capabilities-and-limitations.md) doc, applied to onboarding instead of code generation.
+
+The tour is the recommended way to ramp up on an unfamiliar area of the codebase before invoking any of the workflow agents that *write* code. A 15-minute tour saves an hour of bouncing PRs later.
 
 ---
 

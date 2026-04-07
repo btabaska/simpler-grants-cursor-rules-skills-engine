@@ -174,6 +174,64 @@ For refactors touching 10+ files:
 - **Don't skip review.** Multi-file changes are where hidden bugs hide.
 
 ---
+
+## Chaining Agents: `/codemod` → `/refactor` → `/pr-preparation` → `/changelog`
+
+The agents in this toolkit are deliberately narrow so they can be chained. A common multi-day refactor looks like this:
+
+1. **`/codemod`** does the mechanical part. Renames, import rewrites, decorator swaps. Produces fixup commits and stops at the first thing requiring judgment.
+2. **`/refactor`** picks up the semantic part. It restructures the layers around the renamed symbols, moves logic between service and route layers, and updates tests to match the new shape.
+3. **`/pr-preparation`** runs scoped tests, the convention checker, the PII sweep, drafts the PR title and description, and produces a self-review checklist with blocking and non-blocking findings.
+4. **`/changelog`** (the `changelog-generator` agent) reads the staged commits and proposes a CHANGELOG Unreleased entry in the project's existing voice.
+
+Each step's output is the next step's input. The clean working tree precondition that `/codemod` enforces is what makes this chain safe — every step can roll back to the last fixup commit. The chain mirrors the prompt-engineering principle from doc 08: small, bounded steps with explicit verification between them outperform one giant prompt.
+
+A worked version of this chain (with the codemod refusal on a dirty tree) lives in [Workflow Examples Scenario 8](09-workflow-examples.md#scenario-8-codemod--rename-a-method-across-12-files).
+
+## Subagent Fan-Out: How `api-docs-sync` Uses Quality-Gate Subagents
+
+The `api-docs-sync` agent is a good example of fan-out — it does its main work in series and then fans out to several quality-gate subagents in parallel.
+
+```
+                +-----------------------+
+                | api-docs-sync agent   |
+                |                       |
+                | 1. Pre-Flight context |
+                | 2. Diff handlers vs.  |
+                |    OpenAPI spec       |
+                | 3. Patch spec +       |
+                |    docstrings         |
+                +-----------+-----------+
+                            |
+                            | (fan-out)
+            +---------------+---------------+
+            |               |               |
+            v               v               v
+   +----------------+ +-------------+ +------------------+
+   | api-contract-  | | form-schema-| | documentation-   |
+   | checker        | | validator   | | staleness-       |
+   |                | |             | | detector         |
+   | (path / param  | | (cross-     | | (README, ADRs,   |
+   |  / response    | |  schema     | |  inline docs     |
+   |  contract)     | |  consistency| |  agreement)      |
+   +----------------+ +-------------+ +------------------+
+            |               |               |
+            +---------------+---------------+
+                            |
+                            v
+                +-----------------------+
+                | findings merged,      |
+                | api-docs-sync fixes,  |
+                | re-runs failing       |
+                | gates, returns diff   |
+                +-----------------------+
+```
+
+The three subagents are completely independent, so they run in parallel. Each one is a specialist that *only* invokes from another agent — none of them are usable on their own. This is the entire point of the quality-gate subagent category: extract a single sharp check, give it an explicit invocation contract, and let any workflow agent reuse it.
+
+The same fan-out shape shows up in `pr-preparation` (which fans out to `pii-leak-detector`, `accessibility-auditor`, `dependency-health-reviewer`, and `test-quality-analyzer`) and in `dependency-update` (which fans out to `dependency-health-reviewer` and `pii-leak-detector`). The specialist map for the full set lives in `.cursor/skills/quality-gate/specialist-map.md`.
+
+---
 ## See Also
 - [Workflow Examples](09-workflow-examples.md) — end-to-end scenarios
 - [Agents Reference](05-agents-reference.md) — agents used in multi-file workflows

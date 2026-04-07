@@ -261,6 +261,43 @@ The following are areas where the team acknowledges that conventions have not ye
 
 The codebase knowledge extraction project that produced this guide is itself part of addressing these gaps — by making implicit conventions explicit, the team can identify which gaps matter most and prioritize closing them.
 
+## 14b. Cursor Tooling
+
+The repository ships a Cursor IDE toolkit that encodes the conventions in this guide as machine-readable artifacts. The toolkit is organized as a five-primitive system, each artifact lives under `.cursor/`, and each has a companion prose doc under `documentation/cursor-tooling/`. The toolkit is the operational layer that makes the conventions in this guide enforceable rather than aspirational.
+
+**Inventory (ground truth: `.cursor/`):**
+
+| Primitive | Count | Location |
+|---|---|---|
+| Auto-activating rules | 39 | `.cursor/rules/*.mdc` |
+| Agents (workflow + quality-gate subagents + onboarding) | 51 | `.cursor/agents/*.md` |
+| Skills (4 multi-file + 21 single-file) | 25 | `.cursor/skills/*/SKILL.md` |
+| Slash commands | 64 | `.cursor/commands/*.md` |
+| Hook lifecycle events | 6 | `.cursor/hooks.json` |
+
+**Quality Gate Pipeline.** Every workflow agent in `.cursor/agents/` runs a multi-gate validation pipeline after generating code. Gate 1 is convention compliance (`codebase-conventions-reviewer`), Gate 2 is domain specialists (varies by agent), Gate 3 is the language reviewer (`kieran-python-reviewer` or `kieran-typescript-reviewer`), and Gate 4+ are conditional specialists invoked based on the change type — `pii-leak-detector` for any diff, `accessibility-auditor` for UI changes, `sql-injection-scanner` for DB code, `data-migration-expert` for migrations, and so on. The pipeline pattern lives in `.cursor/skills/quality-gate/SKILL.md`. The end-user-facing explanation is in `docs/02-how-it-works.md` under "The Quality Gate Pipeline Pattern."
+
+**Pre-Flight Context Loading.** Before generating anything, every workflow agent loads architectural context from MCP server tools (`get_architecture_section`, `get_rules_for_file`, `get_conventions_summary`) and from Compound Knowledge. The agent must complete every load step before it is allowed to write a file. This is what keeps generated code anchored to the conventions in this architecture guide rather than to generic Python or TypeScript best practice.
+
+**FedRAMP, Section 508, PII, and USWDS constraints.** The toolkit's compliance posture is enforced by a combination of rules, agents, and quality-gate subagents:
+
+- **FedRAMP Moderate boundary.** The `fedramp.mdc` rule encodes the boundary controls (no new outbound dependencies without an SSP entry, least-privilege IAM, MFA, rotated secrets, tamper-evident audit logging, TLS 1.2+, KMS at rest, SCA/SAST/container scanning gates). The `fedramp-compliance-checker` agent scans Terraform plan diffs against the FedRAMP Moderate baseline and emits a structured compliance gap report. The `authority-to-operate-checklist` agent produces an ATO artifact bundle (NIST 800-53 Rev 5 control mapping matrix, Mermaid PII data-flow diagrams, RBAC inventory, SSP excerpt) for security-relevant PRs.
+- **Section 508 / WCAG 2.1 AA.** The `accessibility.mdc` rule enforces semantic HTML, ARIA attributes, USWDS components from `@trussworks/react-uswds`, and `jest-axe` assertions in component tests. The `accessibility-auditor` quality-gate subagent runs on every frontend PR. The `background-accessibility-monitor` hook fires on `afterFileEdit` for `.tsx` / `.jsx` files and emits advisory WCAG 2.1 AA findings as you type. The `section-508-report-generator` agent ingests `jest-axe` and `pa11y` JSON output and generates VPAT 2.4 Rev 508 sections.
+- **PII handling.** The `data-privacy.mdc` rule classifies data into Public / Internal / Confidential / PII and forbids PII in logs, analytics, error tracking, URLs, and client storage. The `pre-commit-pii-scanner` hook (registered in `.cursor/hooks.json` on `beforeShellExecution`) blocks `git commit` when staged content matches SSN / email / phone patterns. The `pii-leak-detector` quality-gate subagent runs on every PR review and emits `bug:` severity for any finding. The `privacy-impact-assessment` agent produces a draft HHS PIA from a PR diff.
+- **USWDS.** The `frontend-components.mdc` rule requires USWDS components from `@trussworks/react-uswds` over custom implementations. The `frontend-styles.mdc` rule requires USWDS theme token overrides over hardcoded values and the `at-media` mixin for breakpoints. The `responsive-design-checker` quality-gate subagent validates that components honor USWDS breakpoints and mobile-first layout rules.
+
+**Cross-references, not duplication.** This section is intentionally a pointer, not a re-explanation. The full toolkit reference lives under `docs/`:
+
+- `docs/01-what-is-this-toolkit.md` — overview of the five primitives
+- `docs/02-how-it-works.md` — Quality Gate Pipeline pattern, Pre-Flight Context Loading, agent mechanics
+- `docs/04-auto-activating-rules.md` — every rule with its glob and key directives
+- `docs/05-agents-reference.md` — every agent with its category, invocation, and quality gates
+- `docs/skills-reference.md` — every skill with its purpose
+- `docs/hooks-reference.md` and `docs/hook-coverage-matrix.md` — every hook and which directives it enforces
+- `documentation/cursor-tooling/{rules,agents,subagents,skills,hooks}/` — the per-artifact companion docs that are the source of record
+
+When this section and any of those docs disagree, the doc closer to `.cursor/` (the artifact itself, then the companion doc, then the numbered reference) wins.
+
 ## 15. Where to Go from Here
 
 This guide provides the high-level picture. For the detailed, domain-specific conventions with code examples and enforcement rules, see the Tier 2 contextual rule documents:

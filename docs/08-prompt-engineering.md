@@ -43,6 +43,44 @@ Common mistakes and why they fail:
 
 ---
 
+## How Agents in This Repo Encode Prompt-Engineering Best Practice
+
+The `.cursor/agents/` directory is, in effect, a library of long-form prompts written to the same standard you should aspire to in your own chat. Reading them is a fast way to learn what a high-quality prompt looks like in this codebase. Every workflow agent in this repo follows the same six-section structure:
+
+1. **Frontmatter** — `name`, `description`, `model`, `readonly`, and `is_background` flags. The `description` is a single sentence with a concrete trigger ("Invoke when..."), not a marketing line.
+2. **Pre-Flight Context Loading** — explicit calls to `get_architecture_section`, `get_rules_for_file`, `get_conventions_summary`, plus any environment preconditions (clean working tree, required toolchains). The agent must complete pre-flight before generating anything.
+3. **Input Contract** — exactly what the user must supply, what the agent will refuse without, and what it will infer.
+4. **Procedure** — a numbered list of steps. Each step is mechanical enough that the agent's behavior is reproducible.
+5. **Quality Gate Pipeline** — which specialists run after generation, in what order, and what blocks vs. warns.
+6. **Invocation** — copy-pasteable example slash command and `@agent-name` invocations.
+
+### Canonical example: `.cursor/agents/codemod.md`
+
+The codemod agent is a clean example because the task is mechanical and the failure modes are obvious. Every prompt-engineering principle this guide teaches shows up explicitly:
+
+- **Explicit context first.** Pre-Flight loads the architecture section, the rules for every target directory, the cross-cutting conventions summary, and *verifies* that `libcst` and `ts-morph` are installed before planning anything. The agent does not assume — it checks.
+- **Refusal as a feature.** "Verify the working tree is clean. If not, refuse until the user stashes or commits — rollback requires a clean base." A weak prompt would barrel forward; a strong prompt names the precondition and refuses without it.
+- **Bounded scope.** The "Supported Transformation Classes" section enumerates exactly seven kinds of changes the agent will make. Anything else requires hand-written code presented for review. This is the "constraints" component of a good prompt, encoded in the agent itself.
+- **Plan before action.** Step 1 is "discover and report the count *before touching anything*." Step 2 is "present the batch plan for confirmation." The agent is forced to externalize its plan, which is the agent equivalent of a developer thinking out loud before editing.
+- **Smallest possible verification loop.** After each batch, the agent runs the *narrowest* passing test command, not the full suite. This is the "scoped tests" pattern from `skill-run-relevant-tests`, reused inside the agent body.
+- **Deterministic rollback.** On test failure, the agent runs `git restore --source=HEAD --staged --worktree <batch files>` and stops. It does not try to "fix forward" — it preserves the user's safety net.
+- **Hand-off, not heroics.** The opening line says: "if the transformation requires semantic reasoning, stop and hand off to `@agent-refactor`." Knowing when to stop is part of the prompt.
+
+The same six-section structure shows up in `.cursor/agents/feature-flag.md`, `.cursor/agents/pr-preparation.md`, `.cursor/agents/api-docs-sync.md`, and every other workflow agent. When you write your own ad-hoc prompts in chat, you can borrow the structure: state the context you've loaded, state the input contract, list your procedure, name the verification step, and name the rollback. Even a one-paragraph chat prompt that does these five things outperforms a five-paragraph prompt that does none of them.
+
+### Reading the agents to improve your own prompts
+
+The fastest way to learn how to prompt this codebase well is:
+
+1. Open `.cursor/agents/codemod.md` and `.cursor/agents/feature-flag.md` side by side.
+2. Notice that both start by loading context and refusing on missing preconditions.
+3. Notice that both name a Quality Gate Pipeline and list the specialists it runs.
+4. Notice that the *imperative voice* and the explicit numbering are doing real work — the AI follows numbered steps more reliably than it follows prose.
+
+When your own prompt is producing mediocre output, check it against this list. The fix is almost always one of: missing context, missing constraint, missing verification step.
+
+---
+
 ## Before/After Prompt Comparisons
 
 The following pairs each show a weak prompt and a strong prompt for the same task. The annotations explain what the strong version adds and why it matters.

@@ -368,6 +368,81 @@ Expected: symlinks to toolkit, 24 `.mdc` files, Node v18+, PAT starts with `ghp_
 
 ---
 
+## 6. Agent and Skill Failure Modes
+
+### `/codemod` refuses with "won't run against a dirty working tree"
+
+**Symptom:** Invoking `/codemod` returns "I won't run a codemod against a dirty working tree — rollback requires a clean base. Please commit or stash and re-invoke."
+
+**Likely Cause:** You have uncommitted edits. The codemod agent enforces a clean base because its rollback strategy is `git restore --source=HEAD --staged --worktree <batch files>` and a dirty tree would cause it to throw away unrelated work.
+
+**Fix:** `git stash push -m "wip"` (or commit), re-invoke the codemod, then `git stash pop` after the codemod completes. Verify the popped changes do not conflict with the renamed symbols.
+
+**Prevention:** Run `/codemod` as your first action on a fresh branch, before unrelated edits accumulate.
+
+### `@agent-feature-flag` refuses with "missing cleanup date"
+
+**Symptom:** The feature-flag agent stops with "Cleanup date is required for the cleanup tracker — refusing to scaffold."
+
+**Likely Cause:** The agent enforces an explicit cleanup target. A flag without a planned removal date is a flag that will never be removed.
+
+**Fix:** Re-invoke with a cleanup date in the input: `@agent-feature-flag scaffold a flag for X with cleanup date 2026-Q3`. The cleanup tracker entry will be created with that date and `@agent-flag-cleanup` (or `/skill-feature-flag-audit`) will surface it as it ages.
+
+**Prevention:** Treat the cleanup date the same way you treat any required field. If you do not know the date yet, use the next quarter as a placeholder and update it when the rollout plan firms up.
+
+### `pii-leak-detector` blocks merge with `bug:` severity findings
+
+**Symptom:** `pr-preparation` or any review-running agent reports a `bug:` finding from `pii-leak-detector` against a log line, fixture, or post-mortem.
+
+**Likely Cause:** The diff contains an SSN, email, phone number, token, or FedRAMP-sensitive value. PII findings always emit `bug:` severity and are non-negotiable for HHS / FedRAMP compliance.
+
+**Fix:**
+
+1. Look at the cited file and line. If the PII is real, replace it with a synthetic value (`test@example.com`, `555-0100`, `123-00-4567`).
+2. If the value is already synthetic but matches a PII pattern, add it to `.cursor/hooks/.pii-allowlist` (one value per line) so the scanner stops flagging it.
+3. If the value must remain (e.g., a published advisory), document the justification in the PR description and ask a reviewer to override.
+
+**Prevention:** Use synthetic data in fixtures and tests from day one. Never paste a real production log line into a markdown file.
+
+### A read-only onboarding agent refuses to write a file
+
+**Symptom:** `@agent-interactive-codebase-tour`, `@agent-architecture-decision-navigator`, `@agent-pattern-catalog`, or another onboarding agent says "I'm read-only and won't modify the working tree."
+
+**Likely Cause:** Not a bug. These six onboarding agents have `readonly: true` in their frontmatter by design. They are tour guides, not editors.
+
+**Fix:** If you want code generated, hand off to a workflow agent: `@agent-code-generation`, `@agent-new-endpoint`, `@agent-refactor`, etc. The onboarding agent will often suggest the right hand-off in its closing message.
+
+**Prevention:** Use the read-only agents for orientation; use the workflow agents for changes. The split is intentional — it prevents an exploratory question from turning into an unintended diff.
+
+### Pre-release dependency blocks `dependency-update`
+
+**Symptom:** `@agent-dependency-update <package>` reports "version X is a pre-release (alpha/beta/rc) — refusing to upgrade automatically."
+
+**Likely Cause:** The dependency-update agent will not bump to non-stable versions without explicit confirmation. Pre-releases break too often to be safe defaults on a FedRAMP project.
+
+**Fix:** If you actually want the pre-release, re-invoke with explicit consent: `@agent-dependency-update <package> to <X.Y.Z-rc1> --allow-prerelease`. The agent will bump, fetch the changelog, run scoped tests, and report.
+
+**Prevention:** Pin to stable releases unless a specific feature requires a pre-release. Document the reason in the PR description.
+
+### `BREAKING` finding from `api-docs-sync`
+
+**Symptom:** `@agent-api-docs-sync` reports a `BREAKING:` finding (not just a `bug:`). The agent stops and refuses to silently update the spec.
+
+**Likely Cause:** A change to a route handler or schema is incompatible with the previously published OpenAPI contract — a removed field, a renamed path, a status code that no longer appears, or a tightened response shape. The toolkit treats every breaking API change as opt-in because external clients depend on the published spec.
+
+**Fix:**
+
+1. Decide whether the break is intentional. If yes:
+   - Bump the API version in the URL prefix (`/v1/` → `/v2/`) per `openapi.mdc`.
+   - Keep the old version live for the deprecation window documented in the architecture guide.
+   - Re-run `@agent-api-docs-sync` against the new version path.
+2. If the break was unintentional, revert the schema change and use a non-breaking alternative (add a new field, accept both shapes, or introduce a new endpoint).
+3. Document the break in the CHANGELOG Unreleased section under a `Breaking` subsection so the release-notes drafter picks it up.
+
+**Prevention:** Run `@agent-api-docs-sync` as part of `/pr-preparation` before opening a PR. Catching the break locally is much cheaper than catching it after a downstream consumer breaks in staging.
+
+---
+
 ## See Also
 
 - [Getting Started](03-getting-started.md) -- initial setup and verification
