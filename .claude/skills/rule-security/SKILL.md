@@ -1,0 +1,68 @@
+---
+name: rule-security
+description: "MANDATORY when editing files matching ["api/src/**/*.py", "frontend/src/**/*.{ts,tsx}", "infra/**/*.tf", "**/Dockerfile*"]. Application-level security controls: authn/authz, input handling, secrets, dependencies"
+---
+
+# Security Rules
+
+## Authentication and Authorization
+
+ALWAYS authenticate user-facing endpoints with `jwt_or_api_user_key_multi_auth`. ALWAYS verify the authenticated user matches the resource owner and raise `403` (not `401`) on identity mismatch. NEVER trust client-supplied user IDs from request bodies for authorization.
+
+Correct:
+```python
+user = jwt_or_api_user_key_multi_auth.get_user()
+if user.user_id != user_id:
+    raise_flask_error(403, "Forbidden")
+```
+
+## Input Validation
+
+ALWAYS validate at the edge via Marshmallow schemas with explicit types, `required=True`, and length bounds. NEVER interpolate user input into SQL — use parameterized SQLAlchemy constructs. NEVER `eval`, `exec`, or `pickle.loads` untrusted data.
+
+## Output Encoding
+
+ALWAYS rely on React's default escaping — NEVER use `dangerouslySetInnerHTML` with user input. ALWAYS set a strict Content-Security-Policy, X-Frame-Options, and X-Content-Type-Options on responses.
+
+## Secrets
+
+NEVER commit secrets, tokens, API keys, private keys, or `.env` files with real values. ALWAYS load secrets from AWS SSM Parameter Store or Secrets Manager at runtime. ALWAYS rotate credentials on a documented schedule.
+
+## Dependencies
+
+ALWAYS pin direct dependencies and review transitive updates. ALWAYS run SCA (Dependabot, Snyk, or equivalent) in CI and block on high/critical findings. NEVER add a dependency without verifying its license is CC0-compatible and its provenance is known.
+
+## CSRF, CORS, and Cookies
+
+ALWAYS set cookies with `Secure`, `HttpOnly`, and `SameSite=Lax` (or stricter). ALWAYS validate origins for state-changing requests. NEVER enable `Access-Control-Allow-Origin: *` on endpoints carrying credentials.
+
+## Rate Limiting and Abuse
+
+ALWAYS apply rate limits to authentication, search, and write endpoints. NEVER expose expensive operations without throttling.
+
+## Cryptography
+
+ALWAYS use vetted libraries and standard algorithms (AES-GCM, Argon2id for password hashing, Ed25519 or RSA-2048+). NEVER roll custom crypto. TLS 1.2+ required in transit.
+
+## Logging Security Events
+
+ALWAYS log authentication failures, privilege changes, and access-control denials as security events (see `api-logging.mdc`). NEVER log credentials or tokens.
+
+---
+
+## Related Rules
+
+- **`api-auth.mdc`** — multi-auth patterns
+- **`api-routes.mdc`** — identity verification and decorator stack
+- **`api-validation.mdc`** — schema validation error shape
+- **`data-privacy.mdc`** — PII handling
+- **`fedramp.mdc`** — boundary controls
+- **`docker.mdc`** — hardened containers
+- **`ci-cd.mdc`** — SCA/SAST gates
+- **`infra.mdc`** — IAM, KMS, network boundaries
+
+## Specialist Validation
+
+**Simple (typo in header, label change):** None.
+**Moderate (new endpoint, new auth flow):** Invoke `security-sentinel` and `codebase-conventions-reviewer`.
+**Complex (new authn/authz mechanism, new external integration, crypto changes):** Invoke `security-sentinel`, `architecture-strategist`, and `compliance-auditor` in parallel.

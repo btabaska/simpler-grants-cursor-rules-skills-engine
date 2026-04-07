@@ -1,24 +1,36 @@
-# Simpler.Grants.gov Cursor Tooling
+# Simpler.Grants.gov AI Coding Toolkit
 
-Cursor IDE rules, agents, and MCP servers for the [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) monorepo. Derived from **1,459 merged pull requests**, 50 ADRs, and pattern analysis across 14 codebase domains.
+Rules, agents, skills, slash commands, hooks, and MCP servers for the [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) monorepo. Ships for **either Cursor or Claude Code** (or both side-by-side). Derived from **1,459 merged pull requests**, 50 ADRs, and pattern analysis across 14 codebase domains.
 
-> **New here?** Start with the [Documentation Library](docs/README.md) or jump to the [Prompt Cookbook](docs/appendix/prompt-cookbook.md).
+The `.cursor/` tree is the canonical authoring source; `.claude/` is generated from it by `scripts/build-claude-target.py` (idempotent; CI enforces drift-free).
+
+> **New here?** Start with the [Documentation Library](docs/README.md), the [Cursor vs Claude Code parity matrix](docs/16-claude-code-vs-cursor.md), or the [Prompt Cookbook](docs/appendix/prompt-cookbook.md).
 
 ## Quick Start
 
 ```bash
-# Clone alongside your monorepo
 git clone https://github.com/btabaska/simpler-grants-documentation-automation.git
 cd simpler-grants-documentation-automation
 
-# Run setup (creates symlinks into monorepo — nothing is copied or modified)
+# Interactive: pick cursor / claude / both
 ./setup.sh
 
-# Open monorepo in Cursor
-cursor ../simpler-grants-gov
+# Or non-interactive
+./setup.sh --target=claude
+TOOLKIT_TARGET=both ./setup.sh
 ```
 
-**Prerequisites:** [Cursor IDE](https://cursor.sh), [Node.js 18+](https://nodejs.org/), a clone of the monorepo, and a `GITHUB_PAT` env var.
+## Choosing your assistant
+
+| Target | What gets installed in your monorepo clone | When to pick it |
+|---|---|---|
+| `cursor` | `.cursor/`, `.cursorrules`, `documentation/` symlinks | You use Cursor IDE |
+| `claude` | `.claude/`, `.mcp.json` symlinks | You use Claude Code |
+| `both`   | All of the above | You switch between the two |
+
+Both targets expose the same agents, skills, slash commands, hooks, and MCP servers — only the file layout and frontmatter differ. See [`docs/16-claude-code-vs-cursor.md`](docs/16-claude-code-vs-cursor.md) for the parity matrix and known gaps (notably the three Cursor hook events with no Claude Code analog).
+
+**Prerequisites:** [Cursor IDE](https://cursor.sh) or [Claude Code](https://docs.claude.com/en/docs/claude-code), [Node.js 18+](https://nodejs.org/), [Bun](https://bun.sh) (for hooks), a clone of the monorepo, and a `GITHUB_PAT` env var.
 
 ## What's Included
 
@@ -151,34 +163,40 @@ This toolkit is designed for developers at all experience levels with AI tooling
 
 ## How It Works
 
+`.cursor/` is the canonical authoring source. `.claude/` and `.mcp.json` are generated from it by `scripts/build-claude-target.py`. `setup.sh` symlinks whichever target(s) you chose into your monorepo clone.
+
 ```
 This Toolkit Repo                    Your Monorepo Clone
 ==================                   ====================
 
+# When --target=cursor (or both)
 .cursor/                 ──symlink──>  .cursor/
-  rules/                               (24 auto-activating rules)
-  agents/                              (9 standalone agents)
-  skills/                              (4 reusable skills)
-  commands/                            (12 slash commands)
-  hooks.json                           (6 hook lifecycle events)
-  notepads/                            (reference in chat)
-  snippets/                            (type sgg-*)
-  mcp.json                             (MCP server config)
 .cursorrules             ──symlink──>  .cursorrules
 documentation/           ──symlink──>  documentation/
-mcp-server/                            (custom MCP server)
+
+# When --target=claude (or both)
+.claude/                 ──symlink──>  .claude/
+  agents/                              (51 subagents)
+  skills/                              (70 skills: 39 rule-skills + 25 + 6 notepads)
+  commands/                            (64 slash commands)
+  hooks/                               (Bun/TS dispatchers + scripts)
+  settings.json                        (hook event registration)
+  CLAUDE.md                            (project memory)
+.mcp.json                ──symlink──>  .mcp.json
 ```
 
 ## Repository Structure
 
-**Cursor Toolkit** (what your team uses):
 ```
-.cursor/            — Rules, agents, skills, commands, hooks, notepads, snippets, MCP config
-.cursorrules        — Root conventions index
-documentation/      — Architecture guide + detailed rule docs
-mcp-server/         — Custom MCP server for architecture context (10 tools)
-setup.sh            — Team onboarding script
-docs/               — 20-file documentation library
+.cursor/                       — Canonical: rules, agents, skills, commands, hooks, notepads, snippets, mcp.json
+.cursorrules                   — Cursor project memory (source for CLAUDE.md)
+.claude/                       — Generated from .cursor/ by scripts/build-claude-target.py
+.mcp.json                      — Generated from .cursor/mcp.json
+scripts/build-claude-target.py — Idempotent generator (run with --check in CI)
+documentation/                 — Architecture guide + detailed rule docs
+mcp-server/                    — Custom MCP server for architecture context (10 tools)
+setup.sh                       — Team onboarding script (--target=cursor|claude|both)
+docs/                          — 20-file documentation library
 ```
 
 **Pattern Research** (how the rules were derived):

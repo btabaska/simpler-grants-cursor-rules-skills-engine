@@ -1,0 +1,60 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run .claude/hooks/dispatchers/before-shell.ts"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/pre-commit-pii-scanner.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/pre-commit-convention-checker.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run .claude/hooks/dispatchers/after-file-edit.ts"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/background-accessibility-monitor.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/stale-documentation-detector.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run .claude/hooks/dispatchers/on-stop.ts"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/background-test-runner.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/scripts/pr-auto-labeler.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

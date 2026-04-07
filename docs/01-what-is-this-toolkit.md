@@ -1,16 +1,20 @@
 # What Is This Toolkit?
 
-The Simpler.Grants.gov AI Coding Toolkit is a Cursor IDE integration that gives the AI
-assistant deep, specific knowledge of the
-[HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) codebase. It was
-built by systematically analyzing 1,459 merged pull requests from the project over a
-12-month period.
+The Simpler.Grants.gov AI Coding Toolkit gives your AI assistant deep, specific knowledge of the
+[HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) codebase. It ships for
+**either Cursor or Claude Code** (or both side-by-side) — the same rules, agents, skills, slash
+commands, hooks, and MCP servers, translated into each assistant's native file layout. Pick your
+assistant at install time with `./setup.sh --target=cursor|claude|both`. See
+[`16-claude-code-vs-cursor.md`](16-claude-code-vs-cursor.md) for the parity matrix and known gaps.
+
+The toolkit was built by systematically analyzing 1,459 merged pull requests from the project
+over a 12-month period.
 
 The result is not a generic "Python best practices" guide or a "Next.js tutorial." It is
 a distilled encoding of how *this team* writes code — the decorator ordering in route
 handlers, the three-schema form architecture, the service layer conventions, the way tests
-are structured — captured in a format that Cursor can use when generating or reviewing
-code.
+are structured — captured in a format that either Cursor or Claude Code can use when
+generating or reviewing code.
 
 This document explains what the toolkit contains, how it was built, what it is not, and
 why you might (or might not) find it useful.

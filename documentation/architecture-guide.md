@@ -4,6 +4,12 @@
 
 ---
 
+## 0. Multi-target Layout (Cursor + Claude Code)
+
+This toolkit ships for two assistants from a single source. `.cursor/` is the canonical authoring tree; `.claude/` and `.mcp.json` are generated from it by `scripts/build-claude-target.py` (idempotent; CI-enforced via `.github/workflows/claude-target-drift.yml`). `setup.sh` accepts `--target=cursor|claude|both` (or `TOOLKIT_TARGET=`) and runs the generator before installing the Claude Code symlinks. The full parity matrix, hook event mapping, and known gaps live in [`docs/16-claude-code-vs-cursor.md`](../docs/16-claude-code-vs-cursor.md). Authors should always edit `.cursor/` and re-run the generator; never hand-edit `.claude/`.
+
+---
+
 ## 1. Mission & Context
 
 Simpler.grants.gov is a modernization initiative for Grants.gov, the federal government's central portal for finding and applying for federal financial assistance. The project's vision is to make Grants.gov "an extremely simple, accessible, and easy-to-use tool for posting, finding, sharing, and applying for federal financial assistance." Three pillars guide every technical and product decision: make grants.gov **easy** (lower friction for both grantors and applicants), make it **accessible and collaborative** (ensure all communities have access, especially those with limited resources), and make it **transparent and participatory** (work in the open, share data, and show the public how decisions are made).

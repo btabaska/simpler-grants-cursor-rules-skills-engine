@@ -1,0 +1,18 @@
+{
+  "name": "simpler-grants-hooks",
+  "version": "1.0.0",
+  "description": "Cursor hooks for deterministic quality enforcement in simpler-grants-gov",
+  "type": "module",
+  "scripts": {
+    "build": "bun build dispatchers/*.ts --outdir dist/dispatchers && bun build handlers/**/*.ts --outdir dist/handlers && bun build lib/*.ts --outdir dist/lib",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
+    "typescript": "^5.4.0"
+  },
+  "engines": {
+    "bun": ">=1.0.0"
+  },
+  "private": true
+}
