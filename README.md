@@ -39,7 +39,7 @@ Both targets expose the same agents, skills, slash commands, hooks, and MCP serv
 | **Domain Rules** | 39 | Auto-activating rules for API, Frontend, Infra, CI/CD, security, accessibility, FedRAMP, performance, OpenAPI, forms, Docker, Make, GitHub issues |
 | **Agents & Specialists** | 52 | Workflow agents (new-endpoint, refactor, debugging, …) + quality-gate specialist subagents (security-sentinel, accessibility-auditor, api-contract-checker, …) |
 | **Skills** | 25 | Reusable capabilities including `pr-review`, `quality-gate`, `flag-cleanup`, `onboarding`, plus 21 task skills (`skill-api-contract-test`, `skill-bundle-size-check`, `skill-impact-analysis`, …) |
-| **Slash Commands** | 65 | Quick invocation entry points for every agent and task skill |
+| **Slash Commands** | 65 | Quick invocation entry points for every agent and task skill — see [full reference with usage examples](docs/17-slash-commands-reference.md) |
 | **Hook Lifecycle Events** | 6 | Bun/TypeScript dispatchers for security guardrails, convention enforcement, audit logging |
 | **Notepads** | 6 | Pre-loaded context documents for common tasks (also exposed as Claude Code skills) |
 | **Code Snippets** | 2 files | `sgg-*` prefixed VS Code snippets for Python API + TypeScript frontend patterns |
@@ -140,6 +140,7 @@ This toolkit is designed for developers at all experience levels with AI tooling
 **Using the toolkit:**
 - [Auto-Activating Rules](docs/04-auto-activating-rules.md) — complete reference for all 39 domain rules
 - [Agents Reference](docs/05-agents-reference.md) — when and how to invoke each agent
+- [Slash Commands Reference](docs/17-slash-commands-reference.md) — all 65 slash commands with usage examples
 - [Prompt Engineering](docs/08-prompt-engineering.md) — how to write effective prompts, with before/after comparisons
 - [Workflow Examples](docs/09-workflow-examples.md) — 6 end-to-end annotated scenarios
 - [PR Review Guide](docs/11-pr-review-guide.md) — using the PR review skill and interpreting output

@@ -57,6 +57,7 @@ Choose your path based on where you are:
 | 06 | [Notepads Reference](06-notepads-reference.md) | When and how to use each notepad with example prompts |
 | 07 | [Code Snippets Reference](07-code-snippets-reference.md) | All 15 snippets with generated code examples |
 | — | [Skills Reference](skills-reference.md) | All 25 skills (4 multi-file workflow skills + 21 single-file `skill-*` skills) |
+| 17 | [Slash Commands Reference](17-slash-commands-reference.md) | All 65 slash commands grouped by purpose, each with a one-line usage example |
 | 08 | [Prompt Engineering](08-prompt-engineering.md) | How to write effective prompts, with 10+ before/after comparisons |
 | 09 | [Workflow Examples](09-workflow-examples.md) | 6 end-to-end annotated scenarios showing real development tasks |
 | 10 | [Multi-File Workflows](10-multi-file-workflows.md) | Chat vs. Composer, complex multi-file changes, large refactors |
