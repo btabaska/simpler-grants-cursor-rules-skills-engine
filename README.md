@@ -1,5 +1,13 @@
 # Simpler.Grants.gov AI Coding Toolkit
 
+## AI developer experience (AI DevEx) platform
+
+This is a context-engineering layer with agentic guardrails — a repo-level configuration that codifies Simpler Grants' architecture, conventions, and compliance requirements into rules, specialist reviewers, and automated workflows that any AI coding assistant, loads automatically, so every developer on the team gets the same senior-engineer-level guidance and the same security, privacy, and FedRAMP checks applied to every change before a human ever reviews it.
+
+This is not "AI will write all your code." It is codified institutional knowledge that the AI is forced to respect. The toolkit takes the tribal knowledge that currently lives in three senior engineers' heads and in scattered ADRs and turns it into guardrails the AI applies automatically. The result is fewer review cycles, fewer compliance surprises, faster onboarding, and, most importantly for a federal program, a defensible, auditable trail showing that every change was checked against the team's security, privacy, accessibility, and FedRAMP posture before a human ever looked at it.
+
+Vanilla LLM usage is a productivity tool for individuals. This toolkit is a delivery acceleration system for the whole program, and the quality floor it enforces is the part that matters most when you're shipping on behalf of HHS.
+
 Rules, agents, skills, slash commands, hooks, and MCP servers for the [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) monorepo. Ships for **either Cursor or Claude Code** (or both side-by-side). Derived from **1,459 merged pull requests**, 50 ADRs, and pattern analysis across 14 codebase domains.
 
 The `.cursor/` tree is the canonical authoring source; `.claude/` is generated from it by `scripts/build-claude-target.py` (idempotent; CI enforces drift-free).
