@@ -198,6 +198,16 @@ if [[ -f "$TOOLKIT_DIR/mcp-server/package.json" ]]; then
   echo ""
 fi
 
+# ---- 6b. Expose mcp-server to the monorepo --------------------------------
+# Both .mcp.json and .cursor/mcp.json reference ./mcp-server/dist/index.js
+# relative to the monorepo CWD, so the built server must be reachable from
+# there for the simpler-grants-context MCP server to launch.
+if [[ -d "$TOOLKIT_DIR/mcp-server" ]]; then
+  echo -e "${BOLD}Linking mcp-server into monorepo...${NC}"
+  link "$TOOLKIT_DIR/mcp-server" "$MONOREPO_DIR/mcp-server"
+  echo ""
+fi
+
 # ---- 7. Optional git hooks -------------------------------------------------
 
 if [[ -d "$TOOLKIT_DIR/.githooks" ]]; then
@@ -285,6 +295,13 @@ if [[ -f "$TOOLKIT_DIR/mcp-server/dist/index.js" ]]; then
   echo -e "  ${GREEN}✓${NC} Custom MCP server built"
 else
   echo -e "  ${YELLOW}⚠${NC} MCP server not built — run: cd mcp-server && npm install && npm run build"
+fi
+
+if [[ -L "$MONOREPO_DIR/mcp-server" && -f "$MONOREPO_DIR/mcp-server/dist/index.js" ]]; then
+  echo -e "  ${GREEN}✓${NC} mcp-server symlink resolves to built server"
+else
+  echo -e "  ${RED}✗${NC} mcp-server symlink missing or server not built in monorepo"
+  ISSUES=$((ISSUES + 1))
 fi
 
 $INSTALL_CURSOR && verify_cursor

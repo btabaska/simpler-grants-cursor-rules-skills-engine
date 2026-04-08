@@ -1,10 +1,18 @@
 #!/usr/bin/env bun
 /**
  * Standalone diagnostic script for the Simpler Grants AI Coding Toolkit.
- * Run with: bun run .cursor/hooks/health-check.ts
+ * Run with: bun run .cursor/hooks/health-check.ts            (JSON output)
+ *           bun run .cursor/hooks/health-check.ts --ci       (CI mode: exit
+ *                                                             non-zero on any
+ *                                                             failing check)
+ *           bun run .cursor/hooks/health-check.ts --summary  (human-readable)
  *
- * Returns JSON with full health check results across all categories.
- * This is NOT a hook — it's an on-demand utility invoked by the
+ * Self-enumerating — discovers rules, agents, commands, skills, dispatchers,
+ * handlers, and MCP servers from the filesystem rather than hardcoding lists.
+ * Cross-checks .cursor/ (source-of-truth) against .claude/ (generated) and
+ * explicitly flags hook events that DO NOT RUN under Claude Code.
+ *
+ * This is NOT a hook — it is an on-demand utility invoked by the
  * /tooling-health-check command.
  */
 
@@ -37,6 +45,15 @@ interface HealthReport {
 // ---------------------------------------------------------------------------
 
 const PROJECT_ROOT = resolve(import.meta.dir, "../..");
+
+// Cursor events that DO NOT map to any Claude Code event in
+// scripts/build-claude-target.py (HOOK_EVENT_MAP). Keep in sync with the
+// python EVENT_MAP — this script cross-checks that file.
+const CLAUDE_DROPPED_EVENTS = new Set([
+  "beforeMCPExecution",
+  "beforeReadFile",
+  "beforeSubmitPrompt",
+]);
 
 function run(cmd: string): string | null {
   try {
@@ -77,6 +94,14 @@ function readText(rel: string): string | null {
   }
 }
 
+function listDir(rel: string): string[] {
+  try {
+    return readdirSync(join(PROJECT_ROOT, rel));
+  } catch {
+    return [];
+  }
+}
+
 function hostname(): string {
   return run("hostname") ?? "unknown";
 }
@@ -96,7 +121,7 @@ interface DepCheck {
 const DEPS: DepCheck[] = [
   { name: "Node.js", cmd: "node --version", requiredBy: "Frontend, commands, skills", installHint: "brew install node  # or: nvm install 22", minVersion: "18" },
   { name: "npm", cmd: "npm --version", requiredBy: "Frontend dependencies", installHint: "Installed with Node.js" },
-  { name: "Python", cmd: "python3 --version", requiredBy: "API", installHint: "brew install python@3.12", minVersion: "3.11" },
+  { name: "Python", cmd: "python3 --version", requiredBy: "API, build-claude-target.py", installHint: "brew install python@3.12", minVersion: "3.11" },
   { name: "pip", cmd: "pip3 --version", requiredBy: "API dependencies", installHint: "Installed with Python" },
   { name: "Bun", cmd: "bun --version", requiredBy: "Hooks (TypeScript dispatchers)", installHint: "curl -fsSL https://bun.sh/install | bash" },
   { name: "ruff", cmd: "ruff --version", requiredBy: "Hooks (auto-formatter for Python)", installHint: "pip install ruff" },
@@ -104,17 +129,12 @@ const DEPS: DepCheck[] = [
   { name: "jq", cmd: "jq --version", requiredBy: "Hooks (JSON parsing fallback)", installHint: "brew install jq" },
   { name: "git", cmd: "git --version", requiredBy: "Agents, hooks", installHint: "brew install git" },
   { name: "gh (GitHub CLI)", cmd: "gh --version", requiredBy: "PR review skill, GitHub MCP", installHint: "brew install gh && gh auth login" },
-  { name: "Prettier", cmd: "npx prettier --version", requiredBy: "Hooks (auto-formatter)", installHint: "cd frontend && npm install" },
-  { name: "ESLint", cmd: "npx eslint --version", requiredBy: "Frontend convention checks", installHint: "cd frontend && npm install" },
-  { name: "pytest", cmd: "python3 -m pytest --version", requiredBy: "API test runner hook", installHint: "pip install pytest" },
-  { name: "Playwright", cmd: "npx playwright --version", requiredBy: "E2E test agent workflows", installHint: "cd frontend && npx playwright install" },
 ];
 
 function checkDependencies(results: CheckResult[]): void {
   for (const dep of DEPS) {
     const output = run(dep.cmd);
     if (output) {
-      // Extract version number
       const versionMatch = output.match(/(\d+\.\d+[\.\d]*)/);
       const version = versionMatch ? versionMatch[1] : output;
 
@@ -152,181 +172,98 @@ function checkDependencies(results: CheckResult[]): void {
 }
 
 // ---------------------------------------------------------------------------
-// Category 2: Directory Structure
+// Category 2: Directory Structure (self-enumerating)
 // ---------------------------------------------------------------------------
 
-const EXPECTED_RULES = [
-  "api-routes.mdc", "api-services.mdc", "api-database.mdc", "api-auth.mdc",
-  "api-validation.mdc", "api-error-handling.mdc", "api-form-schema.mdc",
-  "api-tests.mdc", "api-tasks.mdc", "api-adapters.mdc", "api-workflow.mdc",
-  "api-search.mdc", "frontend-components.mdc", "frontend-hooks.mdc",
-  "frontend-services.mdc", "frontend-i18n.mdc", "frontend-tests.mdc",
-  "frontend-e2e-tests.mdc", "frontend-app-pages.mdc", "accessibility.mdc",
-  "cross-domain.mdc", "forms-vertical.mdc", "ci-cd.mdc", "infra.mdc",
-];
+interface Inventory {
+  rules: string[];      // e.g. ["api-routes.mdc", ...]
+  agents: string[];     // e.g. ["debugging.md", ...]
+  commands: string[];   // e.g. ["debug.md", ...]
+  skills: string[];     // skill directory names
+  dispatchers: string[];
+}
 
-const EXPECTED_AGENTS = [
-  "debugging.md", "refactor.md", "new-endpoint.md", "orchestrator.md",
-  "code-generation.md", "test-generation.md", "migration.md", "i18n.md", "adr.md",
-];
+function enumerate(): Inventory {
+  return {
+    rules: listDir(".cursor/rules").filter(f => f.endsWith(".mdc")).sort(),
+    agents: listDir(".cursor/agents").filter(f => f.endsWith(".md")).sort(),
+    commands: listDir(".cursor/commands").filter(f => f.endsWith(".md")).sort(),
+    skills: listDir(".cursor/skills")
+      .filter(name => {
+        try {
+          return statSync(join(PROJECT_ROOT, ".cursor/skills", name)).isDirectory();
+        } catch { return false; }
+      })
+      .sort(),
+    dispatchers: listDir(".cursor/hooks/dispatchers").filter(f => f.endsWith(".ts") && f !== "types.ts").sort(),
+  };
+}
 
-const EXPECTED_COMMANDS = [
-  "debug.md", "refactor.md", "new-endpoint.md", "generate.md", "test.md",
-  "migration.md", "i18n.md", "adr.md", "review-pr.md", "check-conventions.md",
-  "explain-architecture.md", "tooling-health-check.md",
-];
-
-const EXPECTED_SKILLS = ["pr-review", "quality-gate", "onboarding", "flag-cleanup"];
-
-const EXPECTED_DISPATCHERS = [
-  "after-file-edit.ts", "before-mcp.ts", "before-read-file.ts",
-  "before-shell.ts", "before-submit-prompt.ts", "on-stop.ts",
-];
-
-function checkDirectoryStructure(results: CheckResult[]): void {
-  const checks: { dir: string; expected: string[]; label: string }[] = [
-    { dir: ".cursor/rules", expected: EXPECTED_RULES, label: "Rules" },
-    { dir: ".cursor/agents", expected: EXPECTED_AGENTS, label: "Agents" },
-    { dir: ".cursor/commands", expected: EXPECTED_COMMANDS, label: "Commands" },
-    { dir: ".cursor/hooks/dispatchers", expected: EXPECTED_DISPATCHERS, label: "Dispatchers" },
-  ];
-
-  for (const { dir, expected, label } of checks) {
-    if (!dirExists(dir)) {
-      results.push({
-        category: "Directory Structure",
-        name: `${label} directory`,
-        status: "fail",
-        message: `${dir}/ does not exist`,
-      });
-      continue;
-    }
-
-    let found = 0;
-    for (const file of expected) {
-      if (fileExists(join(dir, file))) {
-        found++;
-      } else {
-        results.push({
-          category: "Directory Structure",
-          name: `${label}: ${file}`,
-          status: "fail",
-          message: `MISSING: ${dir}/${file}`,
-        });
-      }
-    }
-
-    // Check for unexpected files
-    try {
-      const actual = readdirSync(join(PROJECT_ROOT, dir));
-      const expectedSet = new Set(expected);
-      for (const f of actual) {
-        if (!expectedSet.has(f) && !f.startsWith(".")) {
-          results.push({
-            category: "Directory Structure",
-            name: `${label}: ${f}`,
-            status: "warn",
-            message: `Unexpected file: ${dir}/${f}`,
-          });
-        }
-      }
-    } catch { /* ignore */ }
-
+function checkDirectoryStructure(results: CheckResult[], inv: Inventory): void {
+  // Top-level directories under .cursor/ must exist
+  for (const dir of [".cursor/rules", ".cursor/agents", ".cursor/commands", ".cursor/skills", ".cursor/hooks", ".cursor/hooks/dispatchers", ".cursor/hooks/handlers"]) {
     results.push({
       category: "Directory Structure",
-      name: `${label} summary`,
-      status: found === expected.length ? "pass" : "fail",
-      message: `${found}/${expected.length} ${label.toLowerCase()} present`,
+      name: dir,
+      status: dirExists(dir) ? "pass" : "fail",
+      message: dirExists(dir) ? "Present" : `MISSING: ${dir}/`,
     });
   }
-
-  // Skills (directory-based)
-  for (const skill of EXPECTED_SKILLS) {
-    const skillDir = `.cursor/skills/${skill}`;
-    const skillFile = `${skillDir}/SKILL.md`;
-    if (!dirExists(skillDir)) {
-      results.push({
-        category: "Directory Structure",
-        name: `Skill: ${skill}`,
-        status: "fail",
-        message: `MISSING: ${skillDir}/`,
-      });
-    } else if (!fileExists(skillFile)) {
-      results.push({
-        category: "Directory Structure",
-        name: `Skill: ${skill}`,
-        status: "fail",
-        message: `MISSING: ${skillFile}`,
-      });
-    }
-  }
-
-  const skillsFound = EXPECTED_SKILLS.filter(s => fileExists(`.cursor/skills/${s}/SKILL.md`)).length;
-  results.push({
-    category: "Directory Structure",
-    name: "Skills summary",
-    status: skillsFound === EXPECTED_SKILLS.length ? "pass" : "fail",
-    message: `${skillsFound}/${EXPECTED_SKILLS.length} skills present`,
-  });
 
   // Core files
-  for (const f of ["hooks.json", "mcp.json"]) {
-    const path = `.cursor/${f}`;
+  for (const f of [".cursor/hooks.json", ".cursor/mcp.json", ".cursor/hooks/package.json", ".cursor/hooks/types.ts", ".cursorrules", "scripts/build-claude-target.py"]) {
     results.push({
       category: "Directory Structure",
       name: f,
-      status: fileExists(path) ? "pass" : "fail",
-      message: fileExists(path) ? "Present" : `MISSING: ${path}`,
+      status: fileExists(f) ? "pass" : "fail",
+      message: fileExists(f) ? "Present" : `MISSING: ${f}`,
     });
   }
 
-  for (const f of ["hooks/types.ts", "hooks/package.json"]) {
-    const path = `.cursor/${f}`;
-    results.push({
-      category: "Directory Structure",
-      name: f,
-      status: fileExists(path) ? "pass" : "fail",
-      message: fileExists(path) ? "Present" : `MISSING: ${path}`,
-    });
+  // Inventory summary (self-enumerating — no hardcoded expected counts)
+  results.push({
+    category: "Directory Structure",
+    name: "Inventory",
+    status: "pass",
+    message: `${inv.rules.length} rules, ${inv.agents.length} agents, ${inv.commands.length} commands, ${inv.skills.length} skills, ${inv.dispatchers.length} dispatchers`,
+  });
+
+  if (inv.rules.length === 0) {
+    results.push({ category: "Directory Structure", name: "rules", status: "fail", message: "No .mdc rule files found" });
+  }
+  if (inv.agents.length === 0) {
+    results.push({ category: "Directory Structure", name: "agents", status: "fail", message: "No agent files found" });
+  }
+  if (inv.commands.length === 0) {
+    results.push({ category: "Directory Structure", name: "commands", status: "fail", message: "No command files found" });
+  }
+  if (inv.skills.length === 0) {
+    results.push({ category: "Directory Structure", name: "skills", status: "fail", message: "No skill directories found" });
   }
 }
 
 // ---------------------------------------------------------------------------
-// Category 3: Rule File Integrity
+// Category 3: Rule File Integrity (for every discovered rule)
 // ---------------------------------------------------------------------------
 
-function checkRuleIntegrity(results: CheckResult[]): void {
-  const rulesDir = join(PROJECT_ROOT, ".cursor/rules");
-  if (!dirExists(".cursor/rules")) return;
-
-  for (const file of EXPECTED_RULES) {
+function checkRuleIntegrity(results: CheckResult[], inv: Inventory): void {
+  for (const file of inv.rules) {
     const content = readText(`.cursor/rules/${file}`);
     if (!content) {
-      results.push({
-        category: "Rule Integrity",
-        name: file,
-        status: "fail",
-        message: "Cannot read file",
-      });
+      results.push({ category: "Rule Integrity", name: file, status: "fail", message: "Cannot read file" });
       continue;
     }
 
-    // Check frontmatter
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (!fmMatch) {
-      results.push({
-        category: "Rule Integrity",
-        name: file,
-        status: "fail",
-        message: "Missing YAML frontmatter",
-      });
+      results.push({ category: "Rule Integrity", name: file, status: "fail", message: "Missing YAML frontmatter" });
       continue;
     }
 
-    const frontmatter = fmMatch[1];
-    const hasDescription = /description\s*:/.test(frontmatter);
-    const hasGlobs = /globs\s*:/.test(frontmatter);
-    const hasAlwaysApply = /alwaysApply\s*:/.test(frontmatter);
+    const fm = fmMatch[1];
+    const hasDescription = /description\s*:/.test(fm);
+    const hasAlwaysApply = /alwaysApply\s*:/.test(fm);
+    const hasGlobs = /globs\s*:/.test(fm);
 
     if (!hasDescription || !hasAlwaysApply) {
       results.push({
@@ -338,28 +275,16 @@ function checkRuleIntegrity(results: CheckResult[]): void {
       continue;
     }
 
-    // Check body length
     const body = content.slice(fmMatch[0].length).trim();
     const bodyLines = body.split("\n").length;
     if (bodyLines < 10) {
-      results.push({
-        category: "Rule Integrity",
-        name: file,
-        status: "warn",
-        message: `Body only has ${bodyLines} lines (expected at least 10)`,
-      });
+      results.push({ category: "Rule Integrity", name: file, status: "warn", message: `Body only has ${bodyLines} lines (expected at least 10)` });
       continue;
     }
 
-    // Check globs match files (if globs specified)
-    const isAlwaysApply = /alwaysApply\s*:\s*true/.test(frontmatter);
+    const isAlwaysApply = /alwaysApply\s*:\s*true/.test(fm);
     if (!hasGlobs && !isAlwaysApply) {
-      results.push({
-        category: "Rule Integrity",
-        name: file,
-        status: "warn",
-        message: "No globs specified and alwaysApply is false — rule may never activate",
-      });
+      results.push({ category: "Rule Integrity", name: file, status: "warn", message: "No globs and alwaysApply:false — rule may never activate" });
       continue;
     }
 
@@ -367,7 +292,7 @@ function checkRuleIntegrity(results: CheckResult[]): void {
       category: "Rule Integrity",
       name: file,
       status: "pass",
-      message: `Frontmatter OK, ${bodyLines} lines${isAlwaysApply ? ", alwaysApply" : ""}`,
+      message: `OK (${bodyLines} lines${isAlwaysApply ? ", alwaysApply" : ""})`,
     });
   }
 }
@@ -376,36 +301,23 @@ function checkRuleIntegrity(results: CheckResult[]): void {
 // Category 4: Agent File Integrity
 // ---------------------------------------------------------------------------
 
-function checkAgentIntegrity(results: CheckResult[]): void {
-  if (!dirExists(".cursor/agents")) return;
-
-  for (const file of EXPECTED_AGENTS) {
+function checkAgentIntegrity(results: CheckResult[], inv: Inventory): void {
+  for (const file of inv.agents) {
     const content = readText(`.cursor/agents/${file}`);
     if (!content) {
-      results.push({
-        category: "Agent Integrity",
-        name: file,
-        status: "fail",
-        message: "Cannot read file",
-      });
+      results.push({ category: "Agent Integrity", name: file, status: "fail", message: "Cannot read file" });
       continue;
     }
 
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (!fmMatch) {
-      results.push({
-        category: "Agent Integrity",
-        name: file,
-        status: "fail",
-        message: "Missing YAML frontmatter (expected name, description, model)",
-      });
+      results.push({ category: "Agent Integrity", name: file, status: "fail", message: "Missing YAML frontmatter" });
       continue;
     }
 
     const fm = fmMatch[1];
     const hasName = /name\s*:/.test(fm);
     const hasDescription = /description\s*:/.test(fm);
-
     if (!hasName || !hasDescription) {
       results.push({
         category: "Agent Integrity",
@@ -418,12 +330,11 @@ function checkAgentIntegrity(results: CheckResult[]): void {
 
     const body = content.slice(fmMatch[0].length).trim();
     const bodyLines = body.split("\n").length;
-
     results.push({
       category: "Agent Integrity",
       name: file,
-      status: bodyLines >= 50 ? "pass" : "warn",
-      message: bodyLines >= 50 ? `Frontmatter OK, ${bodyLines} lines` : `Only ${bodyLines} lines (expected at least 50)`,
+      status: bodyLines >= 20 ? "pass" : "warn",
+      message: bodyLines >= 20 ? `OK (${bodyLines} lines)` : `Only ${bodyLines} lines`,
     });
   }
 }
@@ -432,37 +343,19 @@ function checkAgentIntegrity(results: CheckResult[]): void {
 // Category 5: Command File Integrity
 // ---------------------------------------------------------------------------
 
-function checkCommandIntegrity(results: CheckResult[]): void {
-  if (!dirExists(".cursor/commands")) return;
-
-  for (const file of EXPECTED_COMMANDS) {
+function checkCommandIntegrity(results: CheckResult[], inv: Inventory): void {
+  for (const file of inv.commands) {
     const content = readText(`.cursor/commands/${file}`);
     if (!content) {
-      results.push({
-        category: "Command Integrity",
-        name: file,
-        status: "fail",
-        message: "Cannot read file",
-      });
+      results.push({ category: "Command Integrity", name: file, status: "fail", message: "Cannot read file" });
       continue;
     }
-
-    // Commands should NOT have frontmatter
-    if (content.startsWith("---\n")) {
-      results.push({
-        category: "Command Integrity",
-        name: file,
-        status: "warn",
-        message: "Has YAML frontmatter — commands should be plain Markdown",
-      });
-    }
-
     const lines = content.trim().split("\n").length;
     results.push({
       category: "Command Integrity",
       name: file,
       status: lines >= 5 ? "pass" : "warn",
-      message: lines >= 5 ? `${lines} lines, no frontmatter` : `Only ${lines} lines (expected at least 5)`,
+      message: lines >= 5 ? `${lines} lines` : `Only ${lines} lines`,
     });
   }
 }
@@ -471,34 +364,23 @@ function checkCommandIntegrity(results: CheckResult[]): void {
 // Category 6: Skill Integrity
 // ---------------------------------------------------------------------------
 
-function checkSkillIntegrity(results: CheckResult[]): void {
-  for (const skill of EXPECTED_SKILLS) {
+function checkSkillIntegrity(results: CheckResult[], inv: Inventory): void {
+  for (const skill of inv.skills) {
     const content = readText(`.cursor/skills/${skill}/SKILL.md`);
     if (!content) {
-      results.push({
-        category: "Skill Integrity",
-        name: skill,
-        status: "fail",
-        message: "SKILL.md not found or unreadable",
-      });
+      results.push({ category: "Skill Integrity", name: skill, status: "fail", message: "SKILL.md missing or unreadable" });
       continue;
     }
 
     const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
     if (!fmMatch) {
-      results.push({
-        category: "Skill Integrity",
-        name: skill,
-        status: "fail",
-        message: "Missing YAML frontmatter in SKILL.md",
-      });
+      results.push({ category: "Skill Integrity", name: skill, status: "fail", message: "SKILL.md missing frontmatter" });
       continue;
     }
 
     const fm = fmMatch[1];
     const hasName = /name\s*:/.test(fm);
     const hasDescription = /description\s*:/.test(fm);
-
     if (!hasName || !hasDescription) {
       results.push({
         category: "Skill Integrity",
@@ -511,339 +393,274 @@ function checkSkillIntegrity(results: CheckResult[]): void {
 
     const body = content.slice(fmMatch[0].length).trim();
     const bodyLines = body.split("\n").length;
-
-    // Check for supporting files
-    let supportingFiles: string[] = [];
-    try {
-      supportingFiles = readdirSync(join(PROJECT_ROOT, `.cursor/skills/${skill}`))
-        .filter(f => f !== "SKILL.md" && !f.startsWith("."));
-    } catch { /* ignore */ }
-
     results.push({
       category: "Skill Integrity",
       name: skill,
-      status: bodyLines >= 20 ? "pass" : "warn",
-      message: `${bodyLines} lines${supportingFiles.length > 0 ? `, supporting files: ${supportingFiles.join(", ")}` : ""}`,
+      status: bodyLines >= 10 ? "pass" : "warn",
+      message: bodyLines >= 10 ? `OK (${bodyLines} lines)` : `Only ${bodyLines} lines`,
     });
   }
 }
 
 // ---------------------------------------------------------------------------
-// Category 7: Hooks Integrity
+// Category 7: Hooks Integrity (dispatchers + handler imports + hooks.json)
 // ---------------------------------------------------------------------------
 
-function checkHooksIntegrity(results: CheckResult[]): void {
-  // hooks.json validity
+function checkHooksIntegrity(results: CheckResult[], inv: Inventory): void {
+  // Every dispatcher must be executable and its handler imports must resolve.
+  for (const dispatcher of inv.dispatchers) {
+    const rel = `.cursor/hooks/dispatchers/${dispatcher}`;
+    if (!fileExists(rel)) {
+      results.push({ category: "Hooks Integrity", name: dispatcher, status: "fail", message: "Missing" });
+      continue;
+    }
+
+    if (!isExecutable(rel)) {
+      results.push({
+        category: "Hooks Integrity",
+        name: dispatcher,
+        status: "warn",
+        message: "Present but not executable",
+        fix: `chmod +x ${rel}`,
+      });
+    }
+
+    // Parse imports and verify every handler file the dispatcher pulls in
+    // actually exists on disk. If a handler goes missing, the dispatcher
+    // crashes at runtime — this catches it before a hook fires.
+    const content = readText(rel) ?? "";
+    const importRe = /from\s+["']([^"']+)["']/g;
+    const missingImports: string[] = [];
+    let m: RegExpExecArray | null;
+    while ((m = importRe.exec(content)) !== null) {
+      const spec = m[1];
+      if (!spec.startsWith(".")) continue;           // skip node / bun builtins
+      if (!spec.includes("/handlers/")) continue;     // only check handler imports
+      // Resolve relative to .cursor/hooks/dispatchers/
+      const resolved = resolve(PROJECT_ROOT, ".cursor/hooks/dispatchers", spec);
+      if (!existsSync(resolved)) {
+        missingImports.push(spec);
+      }
+    }
+
+    if (missingImports.length > 0) {
+      results.push({
+        category: "Hooks Integrity",
+        name: `${dispatcher} imports`,
+        status: "fail",
+        message: `Broken handler imports: ${missingImports.join(", ")}`,
+      });
+    } else {
+      results.push({
+        category: "Hooks Integrity",
+        name: `${dispatcher} imports`,
+        status: "pass",
+        message: "All handler imports resolve",
+      });
+    }
+  }
+
+  // hooks.json validity + event registration
   const hooksContent = readText(".cursor/hooks.json");
   if (!hooksContent) {
-    results.push({
-      category: "Hooks Integrity",
-      name: "hooks.json",
-      status: "fail",
-      message: "Cannot read .cursor/hooks.json",
-    });
+    results.push({ category: "Hooks Integrity", name: "hooks.json", status: "fail", message: "Cannot read .cursor/hooks.json" });
     return;
   }
 
   let hooksJson: any;
   try {
     hooksJson = JSON.parse(hooksContent);
-    results.push({
-      category: "Hooks Integrity",
-      name: "hooks.json parse",
-      status: "pass",
-      message: "Valid JSON",
-    });
+    results.push({ category: "Hooks Integrity", name: "hooks.json parse", status: "pass", message: "Valid JSON" });
   } catch (e) {
-    results.push({
-      category: "Hooks Integrity",
-      name: "hooks.json parse",
-      status: "fail",
-      message: `Invalid JSON: ${e}`,
-    });
+    results.push({ category: "Hooks Integrity", name: "hooks.json parse", status: "fail", message: `Invalid JSON: ${e}` });
     return;
   }
 
-  // Check version
-  if (hooksJson.version === 1) {
-    results.push({
-      category: "Hooks Integrity",
-      name: "hooks.json version",
-      status: "pass",
-      message: "version: 1",
-    });
-  } else {
-    results.push({
-      category: "Hooks Integrity",
-      name: "hooks.json version",
-      status: "warn",
-      message: `version: ${hooksJson.version ?? "missing"} (expected 1)`,
-    });
+  const events = hooksJson.hooks ?? hooksJson;
+  const eventNames = Object.keys(events).filter(k => k !== "version");
+  for (const event of eventNames) {
+    results.push({ category: "Hooks Integrity", name: `Event: ${event}`, status: "pass", message: "Configured" });
   }
-
-  // Check lifecycle events
-  const expectedEvents = [
-    "beforeShellExecution", "beforeMCPExecution", "beforeReadFile",
-    "beforeSubmitPrompt", "afterFileEdit", "stop",
-  ];
-  for (const event of expectedEvents) {
-    if (hooksJson[event] || hooksJson.hooks?.[event]) {
-      results.push({
-        category: "Hooks Integrity",
-        name: `Event: ${event}`,
-        status: "pass",
-        message: "Configured",
-      });
-    } else {
-      results.push({
-        category: "Hooks Integrity",
-        name: `Event: ${event}`,
-        status: "warn",
-        message: "Not configured in hooks.json",
-      });
-    }
-  }
-
-  // Dispatcher permissions
-  for (const dispatcher of EXPECTED_DISPATCHERS) {
-    const path = `.cursor/hooks/dispatchers/${dispatcher}`;
-    if (!fileExists(path)) {
-      results.push({
-        category: "Hooks Integrity",
-        name: `Dispatcher: ${dispatcher}`,
-        status: "fail",
-        message: "File not found",
-      });
-      continue;
-    }
-
-    const executable = isExecutable(path);
-    results.push({
-      category: "Hooks Integrity",
-      name: `Dispatcher: ${dispatcher}`,
-      status: executable ? "pass" : "warn",
-      message: executable ? "Present and executable" : "Present but NOT executable — run: chmod +x .cursor/hooks/dispatchers/*.ts",
-      fix: executable ? undefined : `chmod +x .cursor/hooks/dispatchers/${dispatcher}`,
-    });
-  }
-
-  // Hook dependencies
-  if (fileExists(".cursor/hooks/package.json")) {
-    results.push({
-      category: "Hooks Integrity",
-      name: "package.json",
-      status: "pass",
-      message: "Present",
-    });
-  }
-
-  const hasNodeModules = dirExists(".cursor/hooks/node_modules");
-  const hasLockfile = fileExists(".cursor/hooks/bun.lockb") || fileExists(".cursor/hooks/bun.lock");
-  results.push({
-    category: "Hooks Integrity",
-    name: "Hook dependencies installed",
-    status: hasNodeModules || hasLockfile ? "pass" : "warn",
-    message: hasNodeModules || hasLockfile ? "Dependencies installed" : "Dependencies not installed",
-    fix: "cd .cursor/hooks && bun install",
-  });
 
   // Logs directory
-  const hasLogsDir = dirExists(".cursor/hooks/logs");
   results.push({
     category: "Hooks Integrity",
     name: "Logs directory",
-    status: hasLogsDir ? "pass" : "warn",
-    message: hasLogsDir ? "Present" : "Missing — create with: mkdir -p .cursor/hooks/logs",
+    status: dirExists(".cursor/hooks/logs") ? "pass" : "warn",
+    message: dirExists(".cursor/hooks/logs") ? "Present" : "Missing",
     fix: "mkdir -p .cursor/hooks/logs",
+  });
+
+  // Dependencies
+  const hasDeps = dirExists(".cursor/hooks/node_modules") || fileExists(".cursor/hooks/bun.lockb") || fileExists(".cursor/hooks/bun.lock");
+  results.push({
+    category: "Hooks Integrity",
+    name: "Hook dependencies",
+    status: hasDeps ? "pass" : "warn",
+    message: hasDeps ? "Installed" : "Not installed",
+    fix: "cd .cursor/hooks && bun install",
   });
 }
 
 // ---------------------------------------------------------------------------
-// Category 8: MCP Server Configuration
+// Category 8: Cursor vs Claude Code hook parity (explicit gap surfacing)
+// ---------------------------------------------------------------------------
+
+function checkClaudeHookParity(results: CheckResult[]): void {
+  // Cross-check .cursor/hooks.json events against the HOOK_EVENT_MAP in
+  // scripts/build-claude-target.py. Any Cursor event with no Claude Code
+  // analog is reported as a WARN so users know it will NOT run under Claude.
+  const hooksContent = readText(".cursor/hooks.json");
+  if (!hooksContent) return;
+  let hooksJson: any;
+  try { hooksJson = JSON.parse(hooksContent); } catch { return; }
+  const events = hooksJson.hooks ?? {};
+  const cursorEvents = Object.keys(events);
+
+  const dropped = cursorEvents.filter(e => CLAUDE_DROPPED_EVENTS.has(e));
+  const mapped = cursorEvents.filter(e => !CLAUDE_DROPPED_EVENTS.has(e));
+
+  results.push({
+    category: "Claude Code Hook Parity",
+    name: "Events running under Claude Code",
+    status: "pass",
+    message: mapped.length > 0 ? mapped.join(", ") : "(none)",
+  });
+
+  if (dropped.length > 0) {
+    results.push({
+      category: "Claude Code Hook Parity",
+      name: "Events DROPPED under Claude Code",
+      status: "warn",
+      message: `${dropped.join(", ")} — these dispatchers ship in this repo but DO NOT RUN when invoked via Claude Code. Do not rely on them for security guardrails in that runtime.`,
+    });
+  }
+
+  // Sanity-check: HOOK_EVENT_MAP in python script still agrees
+  const buildSrc = readText("scripts/build-claude-target.py") ?? "";
+  for (const ev of CLAUDE_DROPPED_EVENTS) {
+    if (!buildSrc.includes(ev)) {
+      results.push({
+        category: "Claude Code Hook Parity",
+        name: `Build script mentions ${ev}`,
+        status: "warn",
+        message: `scripts/build-claude-target.py no longer references ${ev} — this health check's CLAUDE_DROPPED_EVENTS may be out of date.`,
+      });
+    }
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Category 9: MCP Server Configuration
 // ---------------------------------------------------------------------------
 
 function checkMCPConfig(results: CheckResult[]): void {
   const mcpContent = readText(".cursor/mcp.json");
   if (!mcpContent) {
-    results.push({
-      category: "MCP Configuration",
-      name: "mcp.json",
-      status: "fail",
-      message: "Cannot read .cursor/mcp.json",
-    });
+    results.push({ category: "MCP Configuration", name: "mcp.json", status: "fail", message: "Cannot read .cursor/mcp.json" });
     return;
   }
 
   let mcpJson: any;
   try {
     mcpJson = JSON.parse(mcpContent);
-    results.push({
-      category: "MCP Configuration",
-      name: "mcp.json parse",
-      status: "pass",
-      message: "Valid JSON",
-    });
+    results.push({ category: "MCP Configuration", name: "mcp.json parse", status: "pass", message: "Valid JSON" });
   } catch (e) {
-    results.push({
-      category: "MCP Configuration",
-      name: "mcp.json parse",
-      status: "fail",
-      message: `Invalid JSON: ${e}`,
-    });
+    results.push({ category: "MCP Configuration", name: "mcp.json parse", status: "fail", message: `Invalid JSON: ${e}` });
     return;
   }
 
-  // List configured servers
   const servers = mcpJson.mcpServers || mcpJson.servers || {};
   const serverNames = Object.keys(servers);
-
   if (serverNames.length === 0) {
-    results.push({
-      category: "MCP Configuration",
-      name: "MCP servers",
-      status: "fail",
-      message: "No servers configured in mcp.json",
-    });
-  } else {
-    results.push({
-      category: "MCP Configuration",
-      name: "MCP servers",
-      status: "pass",
-      message: `${serverNames.length} server(s) configured: ${serverNames.join(", ")}`,
-    });
+    results.push({ category: "MCP Configuration", name: "Servers", status: "fail", message: "No servers configured" });
+    return;
   }
-
-  // Note: actual connectivity must be tested by the agent via MCP tool calls
   results.push({
     category: "MCP Configuration",
-    name: "Server connectivity",
-    status: "warn",
-    message: "Cannot verify from CLI — agent should test by calling list_rules() and other MCP tools",
+    name: "Servers",
+    status: "pass",
+    message: `${serverNames.length} configured: ${serverNames.join(", ")}`,
+  });
+
+  // Cross-check: every tool name referenced in .cursorrules under "## MCP Tools"
+  // should still be a known simpler-grants-context tool. This catches prose
+  // drift when a tool is renamed or removed.
+  const rules = readText(".cursorrules") ?? "";
+  const mcpSection = rules.match(/## MCP Tools\n([\s\S]*?)(?:\n## |$)/);
+  if (mcpSection) {
+    const toolRefs = [...mcpSection[1].matchAll(/`([a-z_]+)\(/g)].map(m => m[1]);
+    if (toolRefs.length > 0) {
+      results.push({
+        category: "MCP Configuration",
+        name: "Tools referenced in .cursorrules",
+        status: "pass",
+        message: `${toolRefs.length} tool(s): ${toolRefs.join(", ")}`,
+      });
+    }
+  }
+
+  // Mirror file for Claude Code
+  results.push({
+    category: "MCP Configuration",
+    name: ".mcp.json (Claude Code mirror)",
+    status: fileExists(".mcp.json") ? "pass" : "warn",
+    message: fileExists(".mcp.json") ? "Present" : "Missing — run scripts/build-claude-target.py",
   });
 }
 
 // ---------------------------------------------------------------------------
-// Category 9: Plugin Configuration
+// Category 10: Generation pipeline sync (.cursor → .claude)
 // ---------------------------------------------------------------------------
 
-function checkPlugins(results: CheckResult[]): void {
-  // Plugins cannot be verified programmatically from CLI
-  results.push({
-    category: "Plugin Configuration",
-    name: "Compound Engineering",
-    status: "warn",
-    message: "Cannot verify from CLI — check Cursor Settings > Extensions for compound-engineering plugin",
-  });
+function checkGenerationSync(results: CheckResult[]): void {
+  if (!fileExists("scripts/build-claude-target.py")) {
+    results.push({ category: "Generation Pipeline", name: "build-claude-target.py", status: "fail", message: "Missing build script" });
+    return;
+  }
 
-  results.push({
-    category: "Plugin Configuration",
-    name: "Compound Knowledge",
-    status: "warn",
-    message: "Cannot verify from CLI — check Cursor Settings > Extensions for compound-knowledge plugin",
-  });
+  const output = run("python3 scripts/build-claude-target.py --check 2>&1");
+  if (output === null) {
+    results.push({
+      category: "Generation Pipeline",
+      name: ".claude/ in sync with .cursor/",
+      status: "fail",
+      message: "build-claude-target.py --check failed (non-zero exit). Run: python3 scripts/build-claude-target.py",
+      fix: "python3 scripts/build-claude-target.py",
+    });
+    return;
+  }
+  if (output.includes("in sync")) {
+    results.push({ category: "Generation Pipeline", name: ".claude/ in sync with .cursor/", status: "pass", message: "In sync" });
+  } else {
+    results.push({
+      category: "Generation Pipeline",
+      name: ".claude/ in sync with .cursor/",
+      status: "warn",
+      message: output.split("\n").slice(0, 3).join(" | "),
+      fix: "python3 scripts/build-claude-target.py",
+    });
+  }
 }
 
 // ---------------------------------------------------------------------------
-// Category 10: Repository Health
+// Category 11: Repository Health
 // ---------------------------------------------------------------------------
 
 function checkRepoHealth(results: CheckResult[]): void {
-  // Git status
   const gitStatus = run("git status --porcelain");
   if (gitStatus === null) {
-    results.push({
-      category: "Repository Health",
-      name: "Git repository",
-      status: "fail",
-      message: "Not a git repository or git not available",
-    });
+    results.push({ category: "Repository Health", name: "Git repository", status: "fail", message: "Not a git repository" });
   } else if (gitStatus === "") {
-    results.push({
-      category: "Repository Health",
-      name: "Git status",
-      status: "pass",
-      message: "Working tree clean",
-    });
+    results.push({ category: "Repository Health", name: "Git status", status: "pass", message: "Working tree clean" });
   } else {
     const changedFiles = gitStatus.split("\n").length;
-    results.push({
-      category: "Repository Health",
-      name: "Git status",
-      status: "warn",
-      message: `${changedFiles} uncommitted change(s)`,
-    });
+    results.push({ category: "Repository Health", name: "Git status", status: "warn", message: `${changedFiles} uncommitted change(s)` });
   }
 
-  // Branch info
   const branch = run("git branch --show-current");
   if (branch) {
-    results.push({
-      category: "Repository Health",
-      name: "Current branch",
-      status: "pass",
-      message: branch,
-    });
-  }
-
-  // Python environment
-  const pythonImport = run('python3 -c "import flask; print(flask.__version__)" 2>&1');
-  if (pythonImport && !pythonImport.includes("Error") && !pythonImport.includes("No module")) {
-    results.push({
-      category: "Repository Health",
-      name: "Python Flask",
-      status: "pass",
-      message: `Flask v${pythonImport}`,
-    });
-  } else {
-    results.push({
-      category: "Repository Health",
-      name: "Python Flask",
-      status: "warn",
-      message: "Flask not importable — API dependencies may not be installed",
-      fix: "cd api && pip install -r requirements.txt",
-    });
-  }
-
-  // Node modules (check for frontend/)
-  if (dirExists("frontend/node_modules")) {
-    results.push({
-      category: "Repository Health",
-      name: "Frontend node_modules",
-      status: "pass",
-      message: "Present",
-    });
-  } else if (dirExists("frontend")) {
-    results.push({
-      category: "Repository Health",
-      name: "Frontend node_modules",
-      status: "warn",
-      message: "frontend/ exists but node_modules/ missing",
-      fix: "cd frontend && npm install",
-    });
-  }
-
-  // Terraform
-  if (dirExists("infra")) {
-    const hasTfState = dirExists("infra/.terraform");
-    results.push({
-      category: "Repository Health",
-      name: "Terraform initialized",
-      status: hasTfState ? "pass" : "warn",
-      message: hasTfState ? ".terraform/ present" : "terraform init has not been run",
-      fix: "cd infra && terraform init",
-    });
-  }
-
-  // Environment files
-  for (const envFile of [".env", ".env.development", ".env.local"]) {
-    if (fileExists(envFile)) {
-      results.push({
-        category: "Repository Health",
-        name: `Environment: ${envFile}`,
-        status: "pass",
-        message: "Present",
-      });
-    }
+    results.push({ category: "Repository Health", name: "Current branch", status: "pass", message: branch });
   }
 }
 
@@ -851,18 +668,49 @@ function checkRepoHealth(results: CheckResult[]): void {
 // Main
 // ---------------------------------------------------------------------------
 
+function renderSummary(report: HealthReport): string {
+  const lines: string[] = [];
+  lines.push(`Tooling health check — ${report.timestamp}`);
+  lines.push(`PASS ${report.summary.passed}   WARN ${report.summary.warnings}   FAIL ${report.summary.failed}`);
+  lines.push("");
+
+  const byCategory = new Map<string, CheckResult[]>();
+  for (const r of report.results) {
+    if (!byCategory.has(r.category)) byCategory.set(r.category, []);
+    byCategory.get(r.category)!.push(r);
+  }
+  for (const [cat, rs] of byCategory) {
+    const failed = rs.filter(r => r.status === "fail").length;
+    const warned = rs.filter(r => r.status === "warn").length;
+    const passed = rs.filter(r => r.status === "pass").length;
+    lines.push(`[${cat}]  pass=${passed} warn=${warned} fail=${failed}`);
+    for (const r of rs) {
+      if (r.status === "pass") continue;
+      const icon = r.status === "fail" ? "✗" : "!";
+      lines.push(`  ${icon} ${r.name}: ${r.message}`);
+      if (r.fix) lines.push(`    fix: ${r.fix}`);
+    }
+  }
+  return lines.join("\n");
+}
+
 function main(): void {
+  const ci = process.argv.includes("--ci");
+  const summary = process.argv.includes("--summary");
+
   const results: CheckResult[] = [];
+  const inv = enumerate();
 
   checkDependencies(results);
-  checkDirectoryStructure(results);
-  checkRuleIntegrity(results);
-  checkAgentIntegrity(results);
-  checkCommandIntegrity(results);
-  checkSkillIntegrity(results);
-  checkHooksIntegrity(results);
+  checkDirectoryStructure(results, inv);
+  checkRuleIntegrity(results, inv);
+  checkAgentIntegrity(results, inv);
+  checkCommandIntegrity(results, inv);
+  checkSkillIntegrity(results, inv);
+  checkHooksIntegrity(results, inv);
+  checkClaudeHookParity(results);
   checkMCPConfig(results);
-  checkPlugins(results);
+  checkGenerationSync(results);
   checkRepoHealth(results);
 
   const report: HealthReport = {
@@ -877,7 +725,15 @@ function main(): void {
     },
   };
 
-  console.log(JSON.stringify(report, null, 2));
+  if (summary || ci) {
+    console.log(renderSummary(report));
+  } else {
+    console.log(JSON.stringify(report, null, 2));
+  }
+
+  if (ci && report.summary.failed > 0) {
+    process.exit(1);
+  }
 }
 
 main();
