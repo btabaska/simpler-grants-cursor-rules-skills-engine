@@ -8,6 +8,8 @@ This is not "AI will write all your code." It is codified institutional knowledg
 
 Vanilla LLM usage is a productivity tool for individuals. This toolkit is a delivery acceleration system for the whole program, and the quality floor it enforces is the part that matters most when you're shipping on behalf of HHS.
 
+## What is in this repo?
+
 Rules, agents, skills, slash commands, hooks, and MCP servers for the [HHS/simpler-grants-gov](https://github.com/HHS/simpler-grants-gov) monorepo. Ships for **either Cursor or Claude Code** (or both side-by-side). Derived from **1,459 merged pull requests**, 50 ADRs, and pattern analysis across 14 codebase domains.
 
 The `.cursor/` tree is the canonical authoring source; `.claude/` is generated from it by `scripts/build-claude-target.py` (idempotent; CI enforces drift-free).
