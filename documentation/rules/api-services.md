@@ -853,4 +853,4 @@ def make_test_application():
 - [API Auth — Conventions & Rules](api-auth.md) — Authentication schemes, multi-auth composition, user retrieval
 - [API Tests — Conventions & Rules](api-tests.md) — Factory patterns, test organization, fixture management
 - [API Validation — Conventions & Rules](api-validation.md) — ValidationErrorDetail, form validation lifecycle
-- [Cross-Domain Synthesis](../analysis/pass3/cross-domain-synthesis.md) — CCP-1 (logging), CCP-3 (factories), CCP-4 (raise_flask_error), CCP-5 (thin handlers), CCP-6 (boolean naming), CCP-9 (no wildcard loading)
+- Cross-Domain Synthesis — CCP-1 (logging), CCP-3 (factories), CCP-4 (raise_flask_error), CCP-5 (thin handlers), CCP-6 (boolean naming), CCP-9 (no wildcard loading)

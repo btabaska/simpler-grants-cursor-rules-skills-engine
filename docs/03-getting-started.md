@@ -149,6 +149,29 @@ cursor ~/GitHub/simpler-grants-gov
 Cursor will detect the `.cursor/` directory and load the rules, agents, snippets,
 and MCP configuration automatically.
 
+### Step 3a: Enable MCP servers in Cursor
+
+Cursor reads `.cursor/mcp.json` but does **not** auto-enable the servers it
+finds there. You must turn them on once per workspace:
+
+1. In Cursor, open **Settings → MCP**.
+2. Find `simpler-grants-context` in the list and toggle it **on**. Do the same
+   for `github` and `filesystem` if you want them.
+3. Click **Reload MCP Servers** (or run `Developer: Reload Window` from the
+   command palette).
+4. If `simpler-grants-context` still fails to start, rebuild it from the
+   toolkit directory and reload again:
+
+   ```bash
+   cd ~/GitHub/simpler-grants-documentation-automation/mcp-server
+   npm install
+   npm run build
+   ```
+
+**Verify:** ask Cursor to call `simpler-grants-context list_rules`. It should
+return the rule index. If you see "tool unavailable" or no response, the
+server is not enabled — repeat steps 1–3.
+
 ---
 
 ## Verification Exercises

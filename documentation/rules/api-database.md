@@ -940,4 +940,4 @@ class TestCleanupOldSamExtractsTask(BaseTestClass):
 - [API Routes — Conventions & Rules](api-routes.md) — Route handler patterns, `@flask_db.with_db_session()` decorator usage
 - [API Tests — Conventions & Rules](api-tests.md) — Factory patterns, `.build()` vs `.create()` usage, test organization
 - [API Auth — Conventions & Rules](api-auth.md) — User model relationships, token session handling
-- [Cross-Domain Synthesis](../analysis/pass3/cross-domain-synthesis.md) — CCP-3 (factory pattern), CCP-6 (boolean naming), CCP-9 (no wildcard loading), AP-4 (database as source of truth), GAP-4 (query performance), GAP-8 (migration rollback)
+- Cross-Domain Synthesis — CCP-3 (factory pattern), CCP-6 (boolean naming), CCP-9 (no wildcard loading), AP-4 (database as source of truth), GAP-4 (query performance), GAP-8 (migration rollback)

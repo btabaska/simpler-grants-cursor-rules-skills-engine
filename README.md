@@ -178,9 +178,9 @@ documentation/           ──symlink──>  documentation/
 
 # When --target=claude (or both)
 .claude/                 ──symlink──>  .claude/
-  agents/                              (51 subagents)
+  agents/                              (52 subagents)
   skills/                              (70 skills: 39 rule-skills + 25 + 6 notepads)
-  commands/                            (64 slash commands)
+  commands/                            (65 slash commands)
   hooks/                               (Bun/TS dispatchers + scripts)
   settings.json                        (hook event registration)
   CLAUDE.md                            (project memory)
@@ -198,7 +198,7 @@ scripts/build-claude-target.py — Idempotent generator (run with --check in CI)
 documentation/                 — Architecture guide + detailed rule docs
 mcp-server/                    — Custom MCP server for architecture context (10 tools)
 setup.sh                       — Team onboarding script (--target=cursor|claude|both)
-docs/                          — 20-file documentation library
+docs/                          — 21-file documentation library
 ```
 
 **Pattern Research** (how the rules were derived):

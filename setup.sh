@@ -223,6 +223,30 @@ fi
 
 if $INSTALL_CURSOR; then
   echo ""
+  echo -e "${BOLD}Enable MCP servers in Cursor${NC}"
+  echo ""
+  echo "Cursor does not auto-enable MCP servers from .cursor/mcp.json. After"
+  echo "opening the monorepo in Cursor:"
+  echo ""
+  echo "  1. Open Settings → MCP"
+  echo "  2. Ensure 'simpler-grants-context' is enabled (toggle it on)"
+  echo "     — also enable 'github' and 'filesystem' if you want them"
+  echo "  3. Click 'Reload MCP Servers' (or run 'Developer: Reload Window')"
+  echo "  4. If simpler-grants-context still fails, rebuild it:"
+  echo "       cd $TOOLKIT_DIR/mcp-server && npm install && npm run build"
+  echo "     then reload MCP servers again"
+  echo ""
+  echo "Verify by asking Cursor to call simpler-grants-context list_rules —"
+  echo "it should return the rule index instead of 'tool unavailable'."
+  echo ""
+  read -rp "Press Enter once MCP servers are enabled (or 's' to skip): " MCP_RESPONSE
+  if [[ "$MCP_RESPONSE" =~ ^[Ss]$ ]]; then
+    echo -e "  ${YELLOW}Skipped — slash commands and rule routing will fail until MCP is enabled${NC}"
+  else
+    echo -e "  ${GREEN}✓${NC} MCP enablement acknowledged"
+  fi
+  echo ""
+
   echo -e "${BOLD}Required Cursor Plugins${NC}"
   echo ""
   echo "The toolkit uses two Cursor community plugins for the full quality"

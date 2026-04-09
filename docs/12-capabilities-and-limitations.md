@@ -31,7 +31,7 @@ codebase but lacks judgment.**
 It knows that route decorators follow a specific top-to-bottom order. It knows that
 `db_session` must be the first parameter of service functions. It knows that frontend
 components default to React Server Components. It knows all of this because the toolkit's
-39 domain rules, 51 agents, 25 skills, 6 notepads, and 15 code snippets encode these
+39 domain rules, 52 agents, 25 skills, 6 notepads, and 15 code snippets encode these
 conventions explicitly. The agents add a Quality Gate Pipeline on top of the rules so that
 generated code is validated by 11 specialist subagents (PII, accessibility, SQL injection,
 i18n, contract, etc.) before it reaches you.

@@ -373,16 +373,16 @@ usage is the best way to find problems.
 
 ---
 
-## 19. "51 agents? Is that a real number or a marketing number?"
+## 19. "52 agents? Is that a real number or a marketing number?"
 
 It is a real number, and it is the count of files in `.cursor/agents/` — you can
-verify it yourself with `ls .cursor/agents/*.md | wc -l`. The 51 agents are not 51
+verify it yourself with `ls .cursor/agents/*.md | wc -l`. The 52 agents are not 52
 different ways of doing the same thing. They are partitioned into four categories:
 
 - **9 original workflow agents** that pre-date the recent expansion (`new-endpoint`,
   `code-generation`, `test-generation`, `migration`, `i18n`, `adr`, `debugging`,
   `refactor`, `orchestrator`).
-- **25 extended workflow agents** that each own one specific workflow — preparing a
+- **26 extended workflow agents** that each own one specific workflow — preparing a
   PR, running a codemod, scaffolding a feature flag, drafting a runbook, generating
   release notes, building an E2E scenario. These are narrow on purpose so they can
   be chained.

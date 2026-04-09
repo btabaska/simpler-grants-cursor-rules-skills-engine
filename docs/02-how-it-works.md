@@ -227,7 +227,7 @@ If any gate finds a blocker, the agent fixes the issue and re-runs at least the 
 
 ### Available Agents
 
-The toolkit includes 51 agents, grouped into four categories. The original nine workflow agents are:
+The toolkit includes 52 agents, grouped into four categories. The original nine workflow agents are:
 
 | Agent | Slash Command | Purpose |
 |---|---|---|

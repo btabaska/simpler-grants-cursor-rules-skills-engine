@@ -4,7 +4,7 @@ This is the reference library for the AI coding toolkit used by the [HHS/simpler
 
 The toolkit gives Cursor IDE project-specific knowledge extracted from 1,459 merged pull requests — so instead of generic Python or TypeScript suggestions, the AI understands your team's actual conventions.
 
-The toolkit is built from five primitives: **39 auto-activating rules**, **51 agents** (workflow + quality-gate subagents + onboarding), **25 skills**, **64 slash commands**, and **6 hook lifecycle events** (with 20+ handlers and standalone scripts).
+The toolkit is built from five primitives: **39 auto-activating rules**, **52 agents** (workflow + quality-gate subagents + onboarding), **25 skills**, **65 slash commands**, and **6 hook lifecycle events** (with 20+ handlers and standalone scripts).
 
 ---
 
@@ -53,7 +53,7 @@ Choose your path based on where you are:
 | 02 | [How It Works](02-how-it-works.md) | Technical deep dive into rules, agents, MCP servers, and the PR review skill |
 | 03 | [Getting Started](03-getting-started.md) | Step-by-step setup, verification exercises, and first-use tutorial |
 | 04 | [Auto-Activating Rules](04-auto-activating-rules.md) | Complete reference for all 39 rule files with examples |
-| 05 | [Agents Reference](05-agents-reference.md) | Deep reference for the 51 agents: workflow agents, quality-gate subagents, and onboarding agents |
+| 05 | [Agents Reference](05-agents-reference.md) | Deep reference for the 52 agents: workflow agents, quality-gate subagents, and onboarding agents |
 | 06 | [Notepads Reference](06-notepads-reference.md) | When and how to use each notepad with example prompts |
 | 07 | [Code Snippets Reference](07-code-snippets-reference.md) | All 15 snippets with generated code examples |
 | — | [Skills Reference](skills-reference.md) | All 25 skills (4 multi-file workflow skills + 21 single-file `skill-*` skills) |
@@ -66,6 +66,7 @@ Choose your path based on where you are:
 | 13 | [Troubleshooting](13-troubleshooting.md) | Symptom-based troubleshooting for every common issue |
 | 14 | [FAQ for Skeptics](14-faq-for-skeptics.md) | 15+ questions with substantive answers for experienced developers |
 | 15 | [Glossary](15-glossary.md) | Every project-specific and AI-tooling term defined |
+| 16 | [Claude Code vs Cursor](16-claude-code-vs-cursor.md) | Comparison of toolkit behavior across Cursor IDE and Claude Code |
 
 ### Hooks & Events
 
@@ -112,7 +113,7 @@ Choose your path based on where you are:
 │   ├── frontend-services.mdc        # requesterForEndpoint(), server-only
 │   ├── frontend-tests.mdc           # jest-axe, Playwright E2E
 │   └── infra.mdc                    # Three-layer Terraform architecture
-├── agents/                            # 51 agents (9 original + 25 extended workflow + 11 quality-gate subagents + 6 onboarding)
+├── agents/                            # 52 agents (9 original + 26 extended workflow + 11 quality-gate subagents + 6 onboarding)
 │   ├── orchestrator.md                # Task routing to specialist agents
 │   ├── new-endpoint.md               # Complete API endpoint generation
 │   ├── code-generation.md            # Domain-aware code generation
@@ -128,7 +129,7 @@ Choose your path based on where you are:
 │   ├── flag-cleanup/                 # Feature flag removal workflow
 │   ├── onboarding/                   # Developer onboarding
 │   └── skill-*/                      # 21 focused single-file skills (factory, mock, story, openapi-sync, sql-explain, etc.)
-├── commands/                          # 64 slash commands (one per agent + skill)
+├── commands/                          # 65 slash commands (one per agent + skill)
 ├── hooks.json                         # 6 hook lifecycle events
 ├── hooks/                             # Hook dispatchers and handlers
 │   ├── dispatchers/                  # Event dispatchers (TypeScript/Bun)
