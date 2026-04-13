@@ -12,8 +12,8 @@
       "args": ["-y", "@modelcontextprotocol/server-filesystem", "./documentation"]
     },
     "simpler-grants-context": {
-      "command": "node",
-      "args": ["./mcp-server/dist/index.js"]
+      "command": "npx",
+      "args": ["-y", "tsx", "./mcp-server/src/index.ts"]
     }
   }
 }

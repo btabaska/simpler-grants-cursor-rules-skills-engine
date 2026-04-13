@@ -15,10 +15,19 @@ const RULES_DIR = join(DOCS_DIR, "rules");
 const ARCH_GUIDE = join(DOCS_DIR, "architecture-guide.md");
 const CURSORRULES = join(PROJECT_ROOT, ".cursorrules");
 
-// New primitive directories
-const AGENTS_DIR = join(PROJECT_ROOT, ".cursor", "agents");
-const COMMANDS_DIR = join(PROJECT_ROOT, ".cursor", "commands");
-const SKILLS_DIR = join(PROJECT_ROOT, ".cursor", "skills");
+// New primitive directories — prefer .cursor/ but fall back to .claude/ so the
+// server works under both Cursor and Claude Code without changes.
+function resolveTargetDir(subpath: string): string {
+  const cursorPath = join(PROJECT_ROOT, ".cursor", subpath);
+  if (existsSync(cursorPath)) return cursorPath;
+  const claudePath = join(PROJECT_ROOT, ".claude", subpath);
+  if (existsSync(claudePath)) return claudePath;
+  return cursorPath; // default even if missing — loader functions handle gracefully
+}
+
+const AGENTS_DIR = resolveTargetDir("agents");
+const COMMANDS_DIR = resolveTargetDir("commands");
+const SKILLS_DIR = resolveTargetDir("skills");
 
 // File path → rule mapping (mirrors pr-review.mdc dispatch table)
 const FILE_RULE_MAP: Array<{ pattern: RegExp; rules: string[] }> = [

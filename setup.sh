@@ -232,9 +232,9 @@ if $INSTALL_CURSOR; then
   echo "  2. Ensure 'simpler-grants-context' is enabled (toggle it on)"
   echo "     — also enable 'github' and 'filesystem' if you want them"
   echo "  3. Click 'Reload MCP Servers' (or run 'Developer: Reload Window')"
-  echo "  4. If simpler-grants-context still fails, rebuild it:"
-  echo "       cd $TOOLKIT_DIR/mcp-server && npm install && npm run build"
-  echo "     then reload MCP servers again"
+  echo "  4. If simpler-grants-context still fails, reinstall deps:"
+  echo "       cd $TOOLKIT_DIR/mcp-server && npm install"
+  echo "     then reload MCP servers again (tsx runs from source, no build needed)"
   echo ""
   echo "Verify by asking Cursor to call simpler-grants-context list_rules —"
   echo "it should return the rule index instead of 'tool unavailable'."
@@ -315,16 +315,23 @@ verify_claude() {
   [[ -f "$TOOLKIT_DIR/.mcp.json" ]]            && echo -e "  ${GREEN}✓${NC} .mcp.json present"      || ISSUES=$((ISSUES + 1))
 }
 
-if [[ -f "$TOOLKIT_DIR/mcp-server/dist/index.js" ]]; then
-  echo -e "  ${GREEN}✓${NC} Custom MCP server built"
-else
-  echo -e "  ${YELLOW}⚠${NC} MCP server not built — run: cd mcp-server && npm install && npm run build"
+if [[ -f "$TOOLKIT_DIR/mcp-server/src/index.ts" ]]; then
+  if [[ -d "$TOOLKIT_DIR/mcp-server/node_modules" ]]; then
+    echo -e "  ${GREEN}✓${NC} Custom MCP server dependencies installed"
+  else
+    echo -e "  ${YELLOW}⚠${NC} MCP server dependencies missing — run: cd mcp-server && npm install"
+  fi
+  if [[ -f "$TOOLKIT_DIR/mcp-server/dist/index.js" ]]; then
+    echo -e "  ${GREEN}✓${NC} Custom MCP server compiled (dist/)"
+  else
+    echo -e "  ${YELLOW}⚠${NC} MCP server not compiled (tsx will run from source instead)"
+  fi
 fi
 
-if [[ -L "$MONOREPO_DIR/mcp-server" && -f "$MONOREPO_DIR/mcp-server/dist/index.js" ]]; then
-  echo -e "  ${GREEN}✓${NC} mcp-server symlink resolves to built server"
+if [[ -L "$MONOREPO_DIR/mcp-server" && -f "$MONOREPO_DIR/mcp-server/src/index.ts" ]]; then
+  echo -e "  ${GREEN}✓${NC} mcp-server symlink resolves to server source"
 else
-  echo -e "  ${RED}✗${NC} mcp-server symlink missing or server not built in monorepo"
+  echo -e "  ${RED}✗${NC} mcp-server symlink missing or server source not found in monorepo"
   ISSUES=$((ISSUES + 1))
 fi
 
