@@ -1,19 +1,19 @@
 {
   "mcpServers": {
     "github": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "command": "bash",
+      "args": ["-c", "export PATH=\"$(./mcp-server/resolve-node-path.sh)\"; exec npx -y @modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PAT}"
       }
     },
     "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "./documentation"]
+      "command": "bash",
+      "args": ["-c", "export PATH=\"$(./mcp-server/resolve-node-path.sh)\"; exec npx -y @modelcontextprotocol/server-filesystem ./documentation"]
     },
     "simpler-grants-context": {
-      "command": "npx",
-      "args": ["-y", "tsx", "./mcp-server/src/index.ts"]
+      "command": "./mcp-server/launch.sh",
+      "args": []
     }
   }
 }

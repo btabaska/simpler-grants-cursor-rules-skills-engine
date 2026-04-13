@@ -224,7 +224,10 @@ def build_settings_json() -> None:
 
 def build_mcp_json() -> None:
     src = CURSOR / "mcp.json"
-    MCP_OUT.write_text(src.read_text())
+    content = src.read_text()
+    MCP_OUT.write_text(content)
+    # Claude Code reads MCP config from .claude/mcp.json, not .mcp.json
+    write(CLAUDE / "mcp.json", content)
 
 
 def build_claude_md() -> None:
