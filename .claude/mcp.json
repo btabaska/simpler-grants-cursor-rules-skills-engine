@@ -2,18 +2,18 @@
   "mcpServers": {
     "github": {
       "command": "bash",
-      "args": ["-c", "export PATH=\"$(./mcp-server/resolve-node-path.sh)\"; exec npx -y @modelcontextprotocol/server-github"],
+      "args": ["-c", "if [[ -x ./mcp-server/resolve-node-path.sh ]]; then RESOLVER=./mcp-server/resolve-node-path.sh; elif [[ -x ../mcp-server/resolve-node-path.sh ]]; then RESOLVER=../mcp-server/resolve-node-path.sh; else echo \"resolve-node-path.sh not found (checked ./mcp-server and ../mcp-server)\" >&2; exit 1; fi; export PATH=\"$($RESOLVER)\"; exec npx -y @modelcontextprotocol/server-github"],
       "env": {
         "GITHUB_PERSONAL_ACCESS_TOKEN": "${env:GITHUB_PAT}"
       }
     },
     "filesystem": {
       "command": "bash",
-      "args": ["-c", "export PATH=\"$(./mcp-server/resolve-node-path.sh)\"; exec npx -y @modelcontextprotocol/server-filesystem ./documentation"]
+      "args": ["-c", "if [[ -x ./mcp-server/resolve-node-path.sh ]]; then RESOLVER=./mcp-server/resolve-node-path.sh; elif [[ -x ../mcp-server/resolve-node-path.sh ]]; then RESOLVER=../mcp-server/resolve-node-path.sh; else echo \"resolve-node-path.sh not found (checked ./mcp-server and ../mcp-server)\" >&2; exit 1; fi; DOC_ROOT=./documentation; if [[ ! -d \"$DOC_ROOT\" && -d ../documentation ]]; then DOC_ROOT=../documentation; fi; export PATH=\"$($RESOLVER)\"; exec npx -y @modelcontextprotocol/server-filesystem \"$DOC_ROOT\""]
     },
     "simpler-grants-context": {
-      "command": "./mcp-server/launch.sh",
-      "args": []
+      "command": "bash",
+      "args": ["-c", "if [[ -x ./mcp-server/launch.sh ]]; then exec ./mcp-server/launch.sh; elif [[ -x ../mcp-server/launch.sh ]]; then exec ../mcp-server/launch.sh; else echo \"launch.sh not found (checked ./mcp-server and ../mcp-server)\" >&2; exit 1; fi"]
     }
   }
 }
